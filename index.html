@@ -1,0 +1,2185 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>JamieTso — 游戏叙事设计</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Caveat:wght@400;500;600;700&family=Ma+Shan+Zheng&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400;1,500;1,600&family=Noto+Serif+SC:wght@300;400;500;600;700&display=swap');
+
+:root{
+  --bg:#0c0b0e; --bg2:#111014; --card:#151418; --card2:#1a1920;
+  --border:#28272d; --border2:#312f37;
+  --t1:#d8d0c4; --t2:#a09a8e; --t3:#63606a; --t4:#42404a;
+  --acc:#c4823a; --acc2:#8f5e2c; --red:#8b4040;
+  --serif:"Noto Serif SC","Cormorant Garamond","Crimson Text","Source Han Serif SC","Songti SC","SimSun",serif;
+  --sans:"Noto Sans SC","PingFang SC","Microsoft YaHei",sans-serif;
+  --en:"Cormorant Garamond","Playfair Display","Crimson Text","Georgia",serif;
+  --hand:"Caveat","Ma Shan Zheng","Noto Serif SC",cursive;
+  --paper-grain:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.7 0 0 0 0 0.65 0 0 0 0 0.55 0 0 0 0.04 0'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+*{box-sizing:border-box; margin:0; padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--bg); color:var(--t1); font-family:var(--sans); font-size:16px; line-height:1.9; letter-spacing:.015em; overflow-x:hidden; -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale; text-rendering:optimizeLegibility; position:relative}
+body::before{content:''; position:fixed; inset:0; background-image:var(--paper-grain); opacity:.6; pointer-events:none; z-index:0; mix-blend-mode:overlay}
+body > *{position:relative; z-index:1}
+::selection{background:var(--acc2); color:var(--t1)}
+a{color:var(--t1); text-decoration:none; transition:color .2s}
+nav{position:fixed; top:0; left:0; right:0; z-index:1000; display:flex; justify-content:space-between; align-items:center; padding:20px 32px; background:linear-gradient(to bottom, rgba(10,10,13,.95), transparent); backdrop-filter:blur(8px)}
+.nav-brand{font-family:var(--hand); font-size:18px; color:var(--t2); letter-spacing:.02em}
+.nav-brand span{color:var(--acc)}
+.nav-links{display:flex; gap:0; font-family:var(--sans); font-size:12px; letter-spacing:.04em}
+.nav-links a{color:var(--t3); padding:2px 0; position:relative; margin-right:24px; transition:color .2s}
+.nav-links a::after{content:''; position:absolute; bottom:-3px; left:0; width:0; height:1px; background:linear-gradient(90deg, var(--acc2), var(--acc)); transition:width .3s ease}
+.nav-links a:hover,.nav-links a.active{color:var(--t1)}
+.nav-links a:hover::after,.nav-links a.active::after{width:100%}
+.progress{position:fixed; top:0; left:0; height:2px; width:0%; background:linear-gradient(90deg, var(--acc2), var(--acc)); z-index:10000; transition:width .1s}
+
+.hero-epigraph{min-height:100vh; display:flex; flex-direction:column; justify-content:center; align-items:center; text-align:center; padding:140px 32px 140px; position:relative; width:100%}
+.hero-epigraph::before{content:''; position:absolute; inset:0; background:linear-gradient(180deg, var(--bg) 0%, rgba(10,10,13,.6) 15%, transparent 35%, transparent 65%, rgba(10,10,13,.6) 85%, var(--bg) 100%); z-index:-1}
+.hero-epigraph .hero-quote{font-family:var(--serif); font-size:clamp(22px,3.2vw,32px); color:var(--t2); font-style:italic; line-height:2.8; max-width:900px; letter-spacing:.04em}
+.hero-epigraph .hero-quote p{margin:0 0 .4em 0; opacity:0; transform:translateY(24px); transition:opacity 1s ease-out, transform 1s ease-out; position:relative}
+.hero-epigraph .hero-quote p:first-child::before{content:'\201C'; position:absolute; left:-.55em; top:-.2em; font-family:var(--en); font-size:1.4em; color:var(--acc2); opacity:.3; line-height:1}
+.hero-epigraph .hero-quote p.visible{opacity:1; transform:translateY(0)}
+.hero-epigraph .hero-quote .src{display:block; font-family:var(--hand); font-size:15px; color:var(--acc2); margin-top:64px; font-style:normal; letter-spacing:.02em; opacity:0; transform:translateY(12px); transition:opacity 1s ease-out, transform 1s ease-out}
+.hero-epigraph .hero-quote .src.visible{opacity:1; transform:translateY(0)}
+.hero-epigraph .hero-scroll{display:flex; flex-direction:column; align-items:center; gap:14px; font-family:var(--sans); font-size:13px; color:var(--t3); letter-spacing:.22em; opacity:0; margin-top:140px}
+.hero-epigraph .hero-scroll .scroll-arrow{width:22px; height:22px; border-right:3px solid var(--t3); border-bottom:3px solid var(--t3); transform:rotate(45deg); animation:scrollBounce 2s ease-in-out infinite; opacity:.9}
+@keyframes scrollBounce{0%,100%{transform:translateY(0) rotate(45deg)}50%{transform:translateY(14px) rotate(45deg)}}
+
+.opening{min-height:62vh; display:flex; flex-direction:column; justify-content:center; align-items:flex-start; text-align:left; padding:90px 64px 48px; position:relative; max-width:900px; margin:0 auto; opacity:0; transform:translateY(30px); transition:opacity 1.2s ease-out, transform 1.2s ease-out}
+.opening-stage{position:relative; width:100%}
+.opening.visible{opacity:1; transform:translateY(0)}
+.opening-head{max-width:100%; overflow:visible}
+.opening-badge{font-family:var(--hand); font-size:14px; color:var(--acc2); letter-spacing:.02em; border:1.5px solid var(--acc2); padding:6px 18px; margin-bottom:24px; display:inline-block; opacity:0; transform:translateY(20px) rotate(-1deg); transition:opacity 1s ease-out .2s, transform 1s ease-out .2s; border-radius:2px; background:rgba(184,115,51,.04)}
+.opening.visible .opening-badge{opacity:1; transform:translateY(0)}
+.opening-name{font-family:"Noto Serif Display","Noto Serif SC","Cormorant Garamond","Georgia","Songti SC",serif; font-size:clamp(64px,7.5vw,92px); font-weight:500; letter-spacing:.02em; line-height:1.25; margin:0 0 12px 0; padding:0 0 0 .08em; position:relative; display:block; opacity:0; transform:translateY(30px); background:linear-gradient(to right, var(--t1) 0%, #c0b8ac 60%, var(--acc) 100%); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; box-decoration-break:clone; -webkit-box-decoration-break:clone; overflow:visible; transition:opacity 1.2s ease-out .4s, transform 1.2s ease-out .4s}
+.opening.visible .opening-name{opacity:1; transform:translateY(0)}
+.opening-subtitle{font-family:var(--hand); font-size:clamp(18px,2.4vw,26px); color:var(--t2); font-weight:400; letter-spacing:.02em; margin-bottom:12px; opacity:0; transform:translateY(20px); transition:opacity 1s ease-out .6s, transform 1s ease-out .6s}
+.opening.visible .opening-subtitle{opacity:1; transform:translateY(0)}
+.opening-meta{font-family:var(--sans); font-size:12px; color:var(--t3); letter-spacing:.08em; margin-bottom:40px; opacity:0; transform:translateY(20px); transition:opacity 1s ease-out .8s, transform 1s ease-out .8s}
+.opening.visible .opening-meta{opacity:1; transform:translateY(0)}
+.opening-meta .sep{color:var(--t4); margin:0 10px}
+.opening-foot{width:100%; display:flex; justify-content:space-between; align-items:flex-end; margin-top:0; opacity:0; transform:translateY(20px); transition:opacity 1s ease-out 1s, transform 1s ease-out 1s}
+.opening.visible .opening-foot{opacity:1; transform:translateY(0)}
+.opening-tags{font-family:var(--hand); font-size:14px; color:var(--t3); letter-spacing:.02em}
+.opening-tags span{margin-right:18px; white-space:nowrap}
+.opening-tags span.accent{color:var(--acc)}
+.opening-tags span::after{content:'·'; margin-left:18px; color:var(--t4)}
+.opening-tags span:last-child::after{content:none}
+.opening-scroll{font-family:var(--hand); font-size:14px; color:var(--t4); letter-spacing:.02em}
+
+.dialogue .src{display:block; text-align:right; font-family:var(--hand); font-size:14px; color:var(--acc2); letter-spacing:.02em; margin-top:14px; font-style:normal}
+.dialogue .src::before{content:"\2014\2014 "; color:var(--acc2); margin-right:.2em}
+p.src{display:block; text-align:right; font-size:14px; color:var(--acc2); font-family:var(--hand); letter-spacing:.02em; margin-top:14px}
+p.src::before{content:"\2014\2014 "; color:var(--acc2); margin-right:.2em}
+
+.section{padding:56px 40px; max-width:900px; margin:0 auto}
+.file-tag{font-family:var(--sans); font-size:12px; color:var(--t3); letter-spacing:.06em; margin-bottom:20px; display:flex; align-items:center; gap:10px; flex-wrap:wrap; padding-bottom:14px; border-bottom:1px solid var(--border); text-transform:uppercase}
+.file-tag .tag-bracket{color:var(--acc2); opacity:.7}
+.file-tag .stamp{margin-left:auto; font-family:var(--sans); font-size:10px; color:var(--red); border:1.5px solid var(--red); padding:3px 10px; opacity:.5; letter-spacing:.04em; text-transform:uppercase; background:rgba(139,64,64,.04)}
+h2.section-title{font-family:var(--serif); font-size:28px; font-weight:600; color:var(--t1); margin-bottom:12px; letter-spacing:.04em}
+h2.section-title .en{font-family:var(--en); font-size:14px; color:var(--t4); font-weight:400; margin-left:12px; letter-spacing:.06em; font-style:italic}
+.section-sub{font-family:var(--sans); font-size:13px; color:var(--t3); margin-bottom:36px; letter-spacing:.03em; line-height:1.6; display:flex; align-items:center; gap:10px}
+.section-sub .sub-num{font-family:var(--en); font-size:24px; color:var(--acc); font-weight:500; font-style:italic; line-height:1; letter-spacing:0}
+.section-sub .sub-divider{color:var(--border2); font-size:20px; line-height:1; margin:0 2px}
+.section-sub .sub-label{font-size:12px; color:var(--t2)}
+
+.index-cat{margin-bottom:0; padding:24px 0 28px; border-bottom:1px solid var(--border2); opacity:0; transform:translateY(20px); position:relative}
+.index-cat.visible{opacity:1; transform:translateY(0)}
+.index-cat:last-child{border-bottom:none}
+.index-cat-header{display:flex; align-items:baseline; gap:10px; margin-bottom:12px}
+.index-cat-num{font-family:var(--en); font-size:14px; color:var(--acc); letter-spacing:.04em; font-weight:400; font-variant-numeric:tabular-nums; font-style:italic}
+.index-cat-title{font-family:var(--sans); font-size:12px; color:var(--t3); letter-spacing:.06em; text-transform:uppercase; font-weight:500}
+.index-cat-items{display:flex; flex-wrap:wrap; gap:0}
+.index-cat-items a{font-family:var(--serif); font-size:19px; color:var(--t1); padding:6px 0; letter-spacing:.02em; position:relative; margin-right:28px; padding-right:28px; transition:color .25s}
+.index-cat-items a:not(:last-child)::after{content:""; position:absolute; right:0; top:50%; transform:translateY(-50%); width:1px; height:14px; background:var(--border2); opacity:.6}
+.index-cat-items a:hover{color:var(--acc)}
+
+.cat-section{padding:64px 40px 72px; max-width:900px; margin:0 auto; border-top:1px solid var(--border)}
+.cat-header{margin-bottom:56px; padding:56px 0 44px; position:relative}
+.cat-header::before{content:''; position:absolute; top:0; left:0; width:56px; height:3px; background:var(--acc); opacity:.6; border-radius:1px}
+.cat-header::after{content:''; position:absolute; top:1px; left:60px; width:16px; height:1px; background:var(--acc2); opacity:.4}
+.cat-label{font-family:var(--en); font-size:11px; color:var(--acc2); letter-spacing:.25em; text-transform:uppercase; margin-bottom:18px; font-weight:500; font-style:italic}
+.cat-title{font-family:var(--serif); font-size:clamp(34px,4.5vw,52px); font-weight:500; color:var(--t1); margin-bottom:14px; letter-spacing:.04em; line-height:1.15}
+.cat-desc{font-family:var(--sans); font-size:14px; color:var(--t3); letter-spacing:.04em; line-height:1.7}
+.cat-desc::before{content:'/'; color:var(--acc2); margin-right:8px; opacity:.7}
+.cat-desc .sep{color:var(--t4); margin:0 8px; opacity:.7}
+.cat-watermark{position:absolute; right:0; top:16px; font-family:var(--en); font-size:clamp(120px,16vw,200px); color:var(--t1); opacity:.028; line-height:1; pointer-events:none; user-select:none; font-weight:300; font-style:italic; z-index:0}
+
+
+.work-section{padding:48px 0 56px; border-bottom:1px solid var(--border2)}
+.work-section:last-child{border-bottom:none}
+.work-header{margin-bottom:34px; position:relative; padding-bottom:22px; border-bottom:1px solid var(--border)}
+.work-header::before{content:'ARCHIVE'; font-family:var(--en); font-size:11px; color:var(--acc); letter-spacing:.15em; display:inline-block; margin-bottom:12px; opacity:.7; border:1.5px solid var(--acc2); padding:3px 12px; font-weight:500; border-radius:1px; background:rgba(184,115,51,.04)}
+#shiyu .work-header::before{content:'ARCHIVE · 001'}
+#moxiuji .work-header::before{content:'ARCHIVE · 002'}
+#testimony .work-header::before{content:'ARCHIVE · 003'}
+#arknights .work-header::before{content:'ARCHIVE · 004'}
+#gfl .work-header::before{content:'ARCHIVE · 005'}
+#derailed .work-header::before{content:'ARCHIVE · 006'}
+#eve .work-header::before{content:'ARCHIVE · 007'}
+#jingzhi .work-header::before{content:'ARCHIVE · 008'}
+#centaurus .work-header::before{content:'ARCHIVE · 009'}
+#yesterday .work-header::before{content:'ARCHIVE · 010'}
+#story-method .work-header::before{content:'ARCHIVE · 011'}
+#event-method .work-header::before{content:'ARCHIVE · 012'}
+
+.work-title{font-family:var(--serif); font-size:36px; font-weight:600; color:var(--t1); margin-bottom:10px; letter-spacing:.03em}
+.work-title .en{font-family:var(--en); font-size:15px; color:var(--t3); font-weight:400; margin-left:10px; letter-spacing:.05em; font-style:italic; opacity:.8}
+.work-tags{display:flex; gap:8px; flex-wrap:wrap}
+.work-tag{font-family:var(--sans); font-size:12px; color:var(--t3); border:1px solid var(--border); padding:4px 10px; letter-spacing:.04em; border-radius:1px; transition:all .25s}
+.work-tag.accent{color:var(--acc2); border-color:var(--acc2); background:rgba(184,115,51,.04)}
+.work-tag:hover{border-color:var(--acc2); color:var(--t2)}
+
+.context{font-size:15px; color:var(--t2); line-height:2.15; margin:28px 0; font-family:var(--sans); max-width:680px}
+.context p{margin:0 0 16px 0; text-align:justify; text-justify:inter-character}
+.context p:last-child{margin-bottom:0}
+.context strong{color:var(--t1); font-weight:600; letter-spacing:.02em}
+.excerpt{font-family:var(--sans); font-size:16px; line-height:1.95; color:var(--t2); margin:44px -20px; padding:44px 60px; background:var(--bg2); position:relative; text-align:left; letter-spacing:0; border-left:1px solid var(--border2); border-radius:0 2px 2px 0}
+.excerpt.quote{font-family:var(--serif); font-size:18px; line-height:2.05; letter-spacing:.02em; color:var(--t1); text-align:left; border-left-color:var(--acc2); padding-left:68px; background:var(--card)}
+.excerpt.quote::before{content:'\201C'; position:absolute; top:34px; left:24px; font-family:var(--en); font-size:58px; color:var(--acc2); opacity:.28; line-height:1; pointer-events:none}
+.excerpt p{margin:0 0 18px 0}
+.excerpt p:last-child{margin-bottom:0}
+.excerpt .src{display:block; text-align:right; font-family:var(--hand); font-size:13px; color:var(--acc); letter-spacing:.02em; margin-top:28px; padding-top:0; border-top:none; font-style:normal}
+.excerpt .src::before{content:"\2014\2014 "; color:var(--acc2); margin-right:.2em}
+.dialogue{font-family:var(--sans); font-size:15px; line-height:2.15; color:var(--t2); margin:32px 0; padding:38px 36px 34px; background:var(--card); position:relative; border-left:3px solid var(--acc2); border-radius:0 2px 2px 0}
+.dialogue::before{content:'DIALOGUE'; position:absolute; top:-10px; left:24px; font-family:var(--hand); font-size:13px; color:var(--acc); letter-spacing:.02em; background:var(--card); padding:0 8px}
+.dialogue p{margin:0 0 12px 0}
+.dialogue p:last-child{margin-bottom:0}
+.dialogue .speaker{font-weight:600; color:var(--acc); margin-right:8px; letter-spacing:.02em}
+.dialogue-label{font-family:var(--en); font-size:10px; color:var(--t4); letter-spacing:.12em; margin-bottom:18px; padding-bottom:12px; border-bottom:1px solid var(--border); display:block}
+
+.cinematic-dialogue{font-family:var(--sans); font-size:15px; line-height:1.8; color:var(--t2); margin:32px 0; padding:0}
+.cinematic-dialogue .scene-setting{font-family:var(--serif); font-size:13px; color:var(--t4); font-style:italic; margin-bottom:20px; letter-spacing:.02em; line-height:1.8}
+.cinematic-dialogue .dialogue-line{margin:0 0 14px 0; display:flex; flex-direction:column; gap:4px; max-width:85%}
+.cinematic-dialogue .dialogue-line.k3{margin-left:0; margin-right:auto; align-items:flex-start}
+.cinematic-dialogue .dialogue-line.leila{margin-left:auto; margin-right:0; align-items:flex-end; text-align:right}
+.cinematic-dialogue .dialogue-line .speaker{font-family:var(--sans); font-size:14px; font-weight:600; letter-spacing:.06em; text-transform:uppercase; color:var(--acc2); display:inline-block}
+.cinematic-dialogue .dialogue-line.leila .speaker{color:var(--t3)}
+.cinematic-dialogue .dialogue-line p{font-size:16px; line-height:1.8; margin:0; color:var(--t2); letter-spacing:0}
+.cinematic-dialogue .dialogue-line.leila p{color:var(--t1)}
+.cinematic-dialogue .dialogue-action{font-family:var(--serif); font-size:13px; color:var(--t4); font-style:italic; margin:18px 0; line-height:1.8}
+.cinematic-dialogue .dialogue-src{display:block; text-align:right; font-family:var(--hand); font-size:14px; color:var(--acc2); letter-spacing:.02em; margin-top:20px; font-style:normal}
+.cinematic-dialogue .dialogue-src::before{content:'\2014\2014 '; color:var(--acc2); margin-right:.2em}
+
+.toc-box{margin:30px 0; padding:26px 28px; border:1px solid var(--border); background:var(--bg2); position:relative; border-radius:2px}
+.toc-box::before{content:''; position:absolute; top:-1px; left:20px; right:20px; height:1px; background:linear-gradient(90deg, transparent, var(--acc2), transparent); opacity:.3}
+.toc-title{font-family:var(--sans); font-size:11px; color:var(--t3); letter-spacing:.08em; margin-bottom:16px; padding-bottom:10px; border-bottom:1px solid var(--border); text-transform:uppercase; font-weight:500}
+.toc-list{font-family:var(--sans); font-size:14px; color:var(--t2); line-height:1.9; display:grid; grid-template-columns:1fr 1fr; gap:6px 40px; letter-spacing:.02em}
+.char-grid{display:grid; grid-template-columns:repeat(auto-fit, minmax(280px,1fr)); gap:18px; margin:28px 0}
+.char-card{padding:30px; background:linear-gradient(135deg, var(--card) 0%, rgba(26,25,32,.4) 100%); border:1px solid rgba(255,255,255,0.05); border-left:2px solid rgba(196,130,58,0.35); position:relative; overflow:hidden; border-radius:2px; box-shadow:0 4px 16px rgba(0,0,0,.08)}
+.char-card::before{content:''; position:absolute; top:0; left:0; right:0; height:2px; background:linear-gradient(90deg, var(--acc2) 0%, var(--acc) 40%, transparent 100%); opacity:.3}
+.char-card .char-name{font-family:var(--serif); font-size:21px; font-weight:600; color:var(--acc); margin-bottom:4px; line-height:1.3; letter-spacing:.03em}
+.char-card .char-name .char-title{display:block; margin-left:0; margin-top:6px; font-style:normal; color:var(--t4); font-size:11px; letter-spacing:.06em; font-family:var(--sans); padding-top:8px; border-top:1px solid var(--border)}
+.char-card .char-desc{font-size:14px; color:var(--t2); line-height:2; font-family:var(--sans); margin-top:16px; letter-spacing:.015em}
+.char-card .char-desc p{margin:0 0 12px 0}
+.char-card .char-desc p:last-child{margin-bottom:0}
+.char-card .char-footer{display:flex; flex-wrap:wrap; gap:8px; margin-top:20px; padding-top:14px; border-top:1px solid var(--border)}
+.char-card .char-footer-tag{font-family:var(--sans); font-size:11px; color:var(--t3); border:1px solid var(--border); padding:5px 10px; letter-spacing:.06em; transition:border-color .25s}
+.char-card .char-footer-tag:hover{border-color:var(--acc2); color:var(--t2)}
+
+.char-card .char-img{width:100%; margin:-30px -30px 18px; border-bottom:1px solid var(--border); background:var(--bg2); overflow:hidden; position:relative; aspect-ratio:16/10}
+.char-card .char-img img{width:100%; height:100%; object-fit:cover; display:block; filter:brightness(.88) contrast(1.08) sepia(.08)}
+
+.item-grid{display:grid; grid-template-columns:repeat(2,1fr); gap:18px; margin:24px 0}
+.item-card{padding:28px 26px; background:linear-gradient(135deg, var(--card) 0%, rgba(26,25,32,.4) 100%); border:1px solid rgba(255,255,255,0.06); border-left:2px solid rgba(196,130,58,0.35); border-radius:2px; position:relative; overflow:hidden; display:flex; flex-direction:column; gap:16px}
+.item-card::before{content:''; position:absolute; top:0; left:0; right:0; height:2px; background:linear-gradient(90deg, var(--acc2) 0%, var(--acc) 40%, transparent 100%); opacity:.3}
+.item-card .item-icon{width:96px; height:96px; border:1px solid var(--border); background:var(--bg2); border-radius:50%; overflow:hidden; margin:0 auto; display:flex; align-items:center; justify-content:center; position:relative; flex-shrink:0}
+.item-card .item-icon::after{content:''; position:absolute; inset:0; box-shadow:inset 0 0 24px rgba(0,0,0,.35); border-radius:50%; pointer-events:none}
+.item-card .item-icon img{width:100%; height:100%; object-fit:cover; display:block}
+.item-card .item-name{font-family:var(--serif); font-size:22px; font-weight:600; color:var(--acc); letter-spacing:.03em; text-align:center; margin-top:4px}
+.item-card .item-name .en{display:block; font-family:var(--en); font-size:12px; color:var(--t4); font-weight:400; font-style:italic; letter-spacing:.06em; margin-top:4px}
+.item-card .item-desc{font-size:14px; color:var(--t2); line-height:1.95; font-family:var(--sans); letter-spacing:.015em}
+.item-card .item-quote{font-family:var(--hand); font-size:14px; color:var(--acc); font-style:italic; line-height:1.75; padding:12px 16px; background:var(--bg2); border-left:2px solid var(--acc2); letter-spacing:.01em}
+.item-card .item-footer{display:flex; justify-content:center; margin-top:auto; padding-top:14px; border-top:1px solid var(--border)}
+.item-card .item-footer-tag{font-family:var(--sans); font-size:11px; color:var(--t3); border:1px solid var(--border); padding:4px 12px; letter-spacing:.05em}
+
+@media(max-width:700px){
+  .item-grid{grid-template-columns:1fr}
+  .item-card{padding:24px 20px}
+}
+
+.char-card-big{grid-column:1/-1; padding:40px 44px; background:var(--card); border:1px solid var(--border2); position:relative; overflow:hidden; margin:8px 0; border-radius:1px; box-shadow:0 0 0 1px rgba(184,115,51,.08), 0 8px 32px rgba(0,0,0,.12); display:flex; flex-direction:column}
+.char-card-big::before{content:''; position:absolute; top:0; left:0; width:32px; height:32px; border-top:1px solid var(--acc2); border-left:1px solid var(--acc2); opacity:.6; pointer-events:none}
+.char-card-big::after{content:''; position:absolute; bottom:0; right:0; width:32px; height:32px; border-bottom:1px solid var(--acc2); border-right:1px solid var(--acc2); opacity:.6; pointer-events:none}
+.char-card-big .char-header{width:100%; margin-bottom:28px; position:relative; z-index:1}
+.char-card-big .char-header .char-info{margin:18px 0 0 0}
+.char-card-big .char-big-inner{display:grid; grid-template-columns:minmax(0,1.4fr) minmax(0,1fr); gap:40px; align-items:start; position:relative; z-index:1; width:100%}
+.char-card-big .char-big-left{min-width:0}
+.char-card-big .char-name{font-family:var(--serif); font-size:30px; font-weight:600; color:var(--acc); margin-bottom:4px; line-height:1.2; letter-spacing:.02em}
+.char-card-big .char-name .en{display:block; font-family:var(--en); font-size:15px; color:var(--t4); font-weight:400; font-style:italic; letter-spacing:.06em; margin-top:6px}
+.char-card-big .char-info{font-family:var(--sans); font-size:12px; color:var(--t3); letter-spacing:.04em; margin:18px 0 22px; padding:10px 0; border-top:1px solid var(--border2); border-bottom:1px solid var(--border2); display:flex; flex-wrap:wrap; gap:8px 18px}
+.char-card-big .char-info span{display:inline-flex; align-items:center; gap:8px; white-space:nowrap}
+.char-card-big .char-info span::before{content:''; width:4px; height:4px; border-radius:50%; background:var(--acc2); opacity:.7}
+.char-card-big .char-desc{font-size:15px; color:var(--t2); line-height:2.05; font-family:var(--sans); letter-spacing:.015em}
+.char-card-big .char-desc p{margin:0 0 12px 0}
+.char-card-big .char-desc p:last-child{margin-bottom:0}
+.char-card-big .char-big-right{display:flex; flex-direction:column; gap:24px; align-self:end}
+.char-card-big .char-footer{display:flex; flex-wrap:wrap; gap:8px; margin-top:20px; padding-top:14px; border-top:1px solid var(--border)}
+.char-card-big .char-footer-tag{font-family:var(--sans); font-size:11px; color:var(--t3); border:1px solid var(--border); padding:5px 10px; letter-spacing:.06em; transition:border-color .25s}
+.char-card-big .char-footer-tag:hover{border-color:var(--acc2); color:var(--t2)}
+.char-card-big .char-watermark{position:absolute; top:18px; right:24px; font-family:var(--en); font-size:52px; color:var(--t4); opacity:.06; letter-spacing:.02em; line-height:1; pointer-events:none; user-select:none; font-style:italic; font-weight:300}
+
+.char-card-big .char-illust{display:flex; align-items:flex-start; justify-content:center; width:100%; min-height:240px; max-height:480px; border:none; background:transparent; overflow:hidden; position:relative; border-radius:0}
+.char-card-big .char-illust::after{display:none}
+.char-card-big .char-illust img{max-width:100%; max-height:480px; width:auto; height:auto; display:block; object-fit:contain; object-position:top center}
+.char-card-big .char-quote{font-family:var(--serif); font-size:18px; color:var(--t1); font-style:italic; line-height:2; padding:28px 32px; background:var(--bg2); position:relative; letter-spacing:.03em}
+.char-card-big .char-quote::before{content:'\201C'; position:absolute; top:10px; left:14px; font-family:var(--en); font-size:48px; color:var(--acc2); opacity:.3; line-height:1}
+.char-card-big .char-quote-band{clear:both; width:100%; margin-top:32px; padding:28px 32px 28px 56px; background:var(--bg2); border-top:1px solid var(--border); border-bottom:1px solid var(--border); position:relative; font-family:var(--serif); font-size:17px; color:var(--t2); line-height:1.95; letter-spacing:.02em}
+.char-card-big .char-quote-band::before{content:'\201C'; position:absolute; top:14px; left:18px; font-family:var(--en); font-size:44px; color:var(--acc2); opacity:.25; line-height:1}
+@media(max-width:700px){
+  .char-card-big{padding:28px 24px}
+  .char-card-big .char-big-inner{grid-template-columns:1fr; gap:28px}
+  .char-card-big .char-name{font-size:24px}
+  .char-card-big .char-name .en{font-size:13px}
+  .char-card-big .char-info{font-size:11px; gap:6px 12px}
+  .char-card-big .char-desc{font-size:14px; line-height:2}
+  .char-card-big .char-quote{font-size:17px; padding:24px 26px}
+  .char-card-big .char-quote-band{font-size:16px; padding:24px 26px 24px 48px}
+  .char-card-big .char-quote-band::before{font-size:36px}
+  .char-card-big .char-watermark{font-size:40px; top:12px; right:14px}
+}
+.char-card.featured{padding:30px; border:1px solid rgba(255,255,255,0.05); border-left:2px solid rgba(196,130,58,0.35); background:linear-gradient(135deg, var(--card) 0%, rgba(26,25,32,.4) 100%)}
+.char-card.featured .char-name{font-size:24px}
+.char-card.featured .char-desc{font-size:15px; line-height:2.05}
+.doc-card{margin:20px 0; padding:24px 28px; background:var(--bg2); border:1px solid var(--border); position:relative}
+.doc-card::before{content:''; position:absolute; top:0; left:0; right:0; height:1px; background:linear-gradient(90deg, transparent, var(--acc2), transparent); opacity:.25}
+.doc-card .step-num{font-family:var(--hand); font-size:14px; color:var(--acc); letter-spacing:.02em; margin-bottom:8px}
+.doc-card .step-title{font-family:var(--serif); font-size:18px; font-weight:600; color:var(--t1); margin-bottom:8px; letter-spacing:.02em}
+.doc-card .context{font-size:14px; line-height:1.85; margin:12px 0}
+.download-section{margin-top:40px; padding-top:28px; border-top:1px solid var(--border2)}
+.download-section-title{font-family:var(--serif); font-size:17px; font-weight:600; color:var(--t1); letter-spacing:.04em; margin-bottom:18px; display:flex; align-items:center; gap:10px}
+.download-section-title::before{content:''; display:inline-block; width:5px; height:5px; background:var(--acc); opacity:.7; transform:rotate(45deg)}
+.download-section-title .sub{font-family:var(--hand); font-size:14px; color:var(--t3); font-weight:400; margin-left:auto; letter-spacing:.02em}
+.download-list{display:grid; grid-template-columns:repeat(auto-fit, minmax(280px, 1fr)); gap:14px}
+.download-list .doc-link{display:flex; align-items:center; justify-content:space-between; padding:20px 22px; border:1px solid var(--border); border-radius:3px; color:var(--t2); font-family:var(--sans); font-size:15px; text-decoration:none; transition:all .25s; background:var(--card); position:relative; overflow:hidden}
+.download-list .doc-link::before{content:''; position:absolute; top:0; left:0; width:3px; height:100%; background:linear-gradient(to bottom, var(--acc2), transparent); opacity:.5; transition:opacity .25s}
+.download-list .doc-link:hover{border-color:var(--acc2); color:var(--t1); background:var(--card2); transform:translateY(-2px); box-shadow:0 4px 16px rgba(0,0,0,.3)}
+.download-list .doc-link:hover::before{opacity:1}
+.download-list .doc-link:hover .doc-title{color:var(--acc)}
+.download-list .doc-link:hover .doc-arrow{opacity:1; transform:translateX(4px)}
+.download-list .doc-main{display:flex; align-items:center; flex:1; min-width:0}
+.download-list .doc-icon{font-size:18px; margin-right:14px; flex-shrink:0; opacity:.9}
+.download-list .doc-title{transition:color .2s; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; font-weight:500}
+.download-list .doc-meta{color:var(--t4); font-family:var(--sans); font-size:12px; letter-spacing:.04em; margin-left:12px; flex-shrink:0}
+.download-list .doc-arrow{color:var(--acc); font-family:var(--sans); font-size:14px; margin-left:12px; opacity:0; transition:opacity .2s, transform .2s; flex-shrink:0}
+.download-list .doc-tag{font-size:10px; color:var(--acc); border:1px solid var(--acc2); padding:2px 6px; border-radius:2px; margin-left:8px; letter-spacing:.04em; flex-shrink:0}
+.method-step{display:flex; gap:24px; margin:18px 0; padding:24px 28px; background:var(--bg2); border-left:3px solid var(--acc2); position:relative; border-radius:0 2px 2px 0}
+.method-step .num{font-family:var(--hand); font-size:28px; color:var(--acc); font-weight:600; line-height:1; min-width:32px}
+.method-step .body{flex:1}
+.method-step .title{font-family:var(--serif); font-size:18px; font-weight:600; color:var(--t1); margin-bottom:6px; letter-spacing:.02em}
+.method-step .desc{font-size:14px; color:var(--t2); line-height:1.85; letter-spacing:.01em}
+
+.section-divider{text-align:center; font-family:var(--en); font-size:11px; color:var(--t3); letter-spacing:.25em; margin:48px 0 32px; position:relative; padding:0 60px; font-style:italic; font-weight:500}
+.section-divider::before{content:''; position:absolute; top:50%; left:0; width:35%; height:1px; background:linear-gradient(90deg, transparent, var(--acc2), var(--acc2)); opacity:.4}
+.section-divider::after{content:''; position:absolute; top:50%; right:0; width:35%; height:1px; background:linear-gradient(90deg, var(--acc2), var(--acc2), transparent); opacity:.4}
+.faction-grid{display:grid; grid-template-columns:repeat(2,1fr); gap:14px; margin:28px 0}
+.faction-card{padding:22px 26px; background:var(--card); border:1px solid var(--border); position:relative; overflow:hidden; border-radius:2px}
+.faction-card::before{content:''; position:absolute; top:0; left:20px; width:32px; height:2px; background:var(--acc2); opacity:.5}
+.faction-card .name{font-family:var(--serif); font-size:17px; font-weight:600; color:var(--t1); margin-bottom:8px; line-height:1.4; letter-spacing:.02em}
+.faction-card .name .en{font-family:var(--en); font-size:12px; color:var(--t4); margin-left:8px; font-weight:400; font-style:italic; letter-spacing:.03em}
+.faction-card .desc{font-size:14px; color:var(--t2); line-height:1.9; font-family:var(--sans); letter-spacing:.01em}
+
+.gallery{display:grid; grid-template-columns:repeat(2,1fr); gap:16px; margin:24px 0}
+.gallery img{width:100%; height:100%; object-fit:cover; filter:brightness(.9) contrast(1.06) sepia(.08)}
+.gallery .wide{grid-column:span 2}
+.gallery .scene-img.feature{grid-column:span 2; aspect-ratio:2.3/1}
+.gallery .scene-img.feature img{object-position:center 20%}
+.img-wrap{margin:24px 0; border:1px solid var(--border); padding:12px; background:var(--bg2)}
+.img-wrap img{width:100%; display:block; filter:brightness(.9) contrast(1.06) sepia(.08)}
+.img-caption{font-family:var(--hand); font-size:13px; color:var(--t3); text-align:center; margin-top:8px; letter-spacing:.01em; line-height:1.5}
+
+.music-toggle{position:fixed; bottom:28px; right:28px; z-index:960; display:flex; align-items:center; gap:8px; padding:12px 20px; border-radius:24px; background:var(--card); border:1px solid var(--border2); color:var(--t3); font-family:var(--hand); font-size:14px; letter-spacing:.02em; cursor:pointer; box-shadow:0 4px 20px rgba(0,0,0,.5); transition:all .25s; backdrop-filter:blur(6px); white-space:nowrap}
+.music-toggle:hover{border-color:var(--acc2); color:var(--t2); background:#14121a; box-shadow:0 4px 28px rgba(184,115,51,.15)}
+.music-toggle .music-icon{font-size:16px; transition:transform .3s; flex-shrink:0}
+.music-toggle .music-label{font-size:12px; flex-shrink:0}
+.music-toggle .music-name{opacity:0; max-width:0; overflow:hidden; transition:all .35s ease; margin-left:0; font-size:11px; color:var(--acc2); flex-shrink:0; white-space:nowrap}
+.music-toggle:hover .music-name{opacity:1; max-width:200px; margin-left:4px}
+.music-toggle.playing{color:var(--t2); border-color:var(--acc); box-shadow:0 4px 24px rgba(184,115,51,.18), 0 0 0 1px rgba(184,115,51,.08)}
+.music-toggle.playing .music-icon{animation:musicBreathe 2s ease-in-out infinite}
+@keyframes musicBreathe{0%,100%{transform:scale(1); opacity:.9}50%{transform:scale(1.28); opacity:1}}
+
+.pull-quote{font-family:var(--serif); font-size:22px; color:var(--t1); font-style:italic; line-height:2.3; text-align:center; max-width:640px; margin:48px auto; padding:0 32px; position:relative; letter-spacing:.02em}
+.pull-quote::before{content:'\201C'; display:block; font-family:var(--en); font-size:48px; color:var(--acc2); opacity:.25; line-height:.5; margin-bottom:8px}
+.pull-quote::after{content:''; display:block; width:48px; height:1px; background:var(--acc2); margin:18px auto 0; opacity:.35}
+
+.closing{padding:0; max-width:100%; margin:0; border-top:1px solid var(--border2); text-align:center; position:relative; overflow:hidden; background:var(--bg)}
+.closing::before{content:''; position:absolute; top:0; left:50%; transform:translateX(-50%); width:80px; height:2px; background:var(--acc); opacity:.4}
+.closing-inner{max-width:680px; margin:0 auto; padding:120px 40px 100px; position:relative; z-index:1}
+.closing-epigraph{font-family:var(--hand); font-size:clamp(18px,2.4vw,24px); color:var(--acc2); font-style:normal; line-height:2.4; letter-spacing:.02em; margin-bottom:44px; opacity:0; transform:translateY(20px); transition:opacity 1.2s ease-out, transform 1.2s ease-out}
+.closing.visible .closing-epigraph{opacity:1; transform:translateY(0)}
+.closing-body{font-family:var(--serif); font-size:clamp(17px,2.6vw,24px); color:var(--t1); line-height:2.3; font-style:italic; margin-bottom:36px; position:relative; padding:0 24px; letter-spacing:.03em; opacity:0; transform:translateY(20px); transition:opacity 1.2s ease-out .4s, transform 1.2s ease-out .4s}
+.closing.visible .closing-body{opacity:1; transform:translateY(0)}
+.closing-attribution{font-family:var(--hand); font-size:15px; color:var(--t3); letter-spacing:.02em; margin-bottom:56px; opacity:0; transform:translateY(12px); transition:opacity 1s ease-out .8s, transform 1s ease-out .8s}
+.closing.visible .closing-attribution{opacity:1; transform:translateY(0)}
+.closing-meta{font-family:var(--sans); font-size:12px; color:var(--t4); line-height:2.2; letter-spacing:.06em; margin-bottom:56px; opacity:0; transform:translateY(12px); transition:opacity 1s ease-out 1s, transform 1s ease-out 1s}
+.closing.visible .closing-meta{opacity:1; transform:translateY(0)}
+.closing-meta .sep{color:var(--t4); margin:0 8px}
+.closing-back{font-family:var(--hand); font-size:15px; color:var(--acc); letter-spacing:.02em; text-decoration:none; padding:8px 28px; border:1.5px solid var(--acc2); opacity:0; transform:translateY(12px) rotate(-1deg); transition:opacity 1s ease-out 1.2s, transform 1s ease-out 1.2s, color .3s, border-color .3s, background .3s; display:inline-block; cursor:pointer; border-radius:2px; background:rgba(184,115,51,.04)}
+.closing.visible .closing-back{opacity:1; transform:translateY(0)}
+.closing-back:hover{color:var(--t1); border-color:var(--acc); background:rgba(184,115,51,.08)}
+
+.fade-in{opacity:0; transform:translateY(20px); transition:opacity .8s ease-out, transform .8s ease-out}
+.fade-in.visible{opacity:1; transform:translateY(0)}
+
+@keyframes fadeInUp{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:translateY(0)}}
+@keyframes fadeInDown{from{opacity:0;transform:translateY(-24px)}to{opacity:1;transform:translateY(0)}}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+@keyframes scrollPulse{0%{transform:scaleY(0); opacity:0}15%{opacity:1}50%{transform:scaleY(1); opacity:1}85%{transform:scaleY(1); opacity:0}100%{transform:scaleY(0); opacity:0}}
+
+.page-break{height:10vh; background:linear-gradient(to bottom, var(--bg) 0%, var(--bg2) 50%, var(--bg) 100%); position:relative; display:flex; align-items:center; justify-content:center; overflow:hidden}
+.page-break::after{content:''; position:absolute; width:1px; height:28px; background:linear-gradient(to bottom, transparent, var(--t4), transparent); opacity:.3}
+
+.opening-bridge{max-width:900px; margin:0 auto; padding:0 48px 40px; display:flex; align-items:center; gap:24px; opacity:0; transform:translateY(20px); transition:opacity 1s ease-out 1.1s, transform 1s ease-out 1.1s}
+.opening-bridge.visible{opacity:1; transform:translateY(0)}
+.opening-bridge-line{flex:1; height:1px; background:linear-gradient(90deg, transparent, var(--border), transparent); max-width:240px}
+.opening-bridge-label{font-family:var(--hand); font-size:14px; color:var(--acc2); letter-spacing:.02em}
+.opening-bridge-dot{width:4px; height:4px; border-radius:50%; background:var(--acc2); opacity:.6}
+
+
+/* Right side chapter context panel */
+.right-panel{position:fixed; top:50%; right:32px; transform:translateY(-50%); z-index:850; display:flex; flex-direction:column; align-items:center; gap:16px; opacity:0; transition:opacity .6s ease; pointer-events:none}
+.right-panel.visible{opacity:1}
+.right-panel-line{width:1px; height:60px; background:linear-gradient(to bottom, transparent, var(--acc2), transparent); opacity:.4}
+.right-panel-num{font-family:var(--hand); font-size:16px; color:var(--acc); letter-spacing:.02em; font-weight:600}
+.right-panel-title{writing-mode:vertical-rl; font-family:var(--hand); font-size:14px; color:var(--t3); letter-spacing:.02em; text-orientation:mixed; max-height:120px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+@media(max-width:1200px){.right-panel{display:none}}
+
+/* Scrollbar */
+html{scrollbar-width:thin; scrollbar-color:var(--acc2) transparent}
+.bottom-fade{position:fixed; left:0; right:0; bottom:0; height:240px; backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px); mask-image:linear-gradient(to top, black 5%, transparent 60%); -webkit-mask-image:linear-gradient(to top, black 5%, transparent 60%); background:linear-gradient(to top, rgba(10,10,13,.35) 0%, transparent 45%); z-index:890; pointer-events:none}
+
+::-webkit-scrollbar{width:4px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--acc2); border-radius:2px}
+::-webkit-scrollbar-thumb:hover{background:var(--acc)}
+
+/* Side TOC — clean archival index */
+.side-toc{position:fixed; top:180px; left:max(24px, calc(50% - 450px - 280px)); width:220px; max-height:calc(100vh - 240px); overflow-y:auto; z-index:900; opacity:0; transform:translateX(-16px); pointer-events:none; transition:opacity .5s ease, transform .5s ease; padding-right:8px; scrollbar-width:thin; scrollbar-color:var(--border2) transparent}
+.side-toc.visible{opacity:1; transform:translateX(0); pointer-events:auto}
+.side-toc::-webkit-scrollbar{width:3px}
+.side-toc::-webkit-scrollbar-track{background:transparent}
+.side-toc::-webkit-scrollbar-thumb{background:var(--border2); border-radius:2px}
+.toc-label{font-family:var(--sans); margin-bottom:22px; padding-bottom:14px; border-bottom:1px solid var(--border2); position:relative}
+.toc-label .toc-label-en{display:block; font-size:10px; color:var(--t3); letter-spacing:.16em; text-transform:uppercase; font-weight:500; margin-bottom:6px}
+.toc-label .toc-label-cn{display:block; font-family:var(--serif); font-size:18px; color:var(--t1); letter-spacing:.04em; font-weight:500}
+.toc-label::after{content:''; position:absolute; bottom:-1px; left:0; width:40px; height:1px; background:var(--acc2); opacity:.8}
+.toc-group{margin-bottom:22px}
+.toc-cat{font-family:var(--sans); font-size:13px; color:var(--t3); letter-spacing:.04em; margin-bottom:10px; padding-left:12px; position:relative; text-decoration:none; display:block; transition:color .2s}
+.toc-cat::before{content:''; position:absolute; left:0; top:50%; width:4px; height:4px; border-radius:50%; background:var(--acc2); transform:translateY(-50%)}
+.toc-num{font-family:var(--en); font-size:14px; color:var(--acc); font-weight:400; font-style:italic; letter-spacing:.02em; margin-right:6px}
+.toc-cat:hover{color:var(--t1)}
+.toc-link{display:block; font-family:var(--sans); font-size:14px; color:var(--t2); padding:5px 0 5px 12px; border-left:1px solid var(--border2); transition:color .2s, border-color .2s, padding-left .2s; line-height:1.55; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; letter-spacing:.02em}
+.toc-link:hover{color:var(--t1); border-left-color:var(--acc2); padding-left:16px}
+.toc-link.active{color:var(--acc); border-left:2px solid var(--acc); padding-left:15px}
+.toc-cat.active{color:var(--t1)}
+.toc-cat.active::before{background:var(--acc2)}
+.toc-toggle{display:none; position:fixed; bottom:28px; left:24px; z-index:950; width:46px; height:46px; border-radius:50%; background:var(--card); border:1px solid var(--border2); color:var(--t2); font-family:var(--sans); font-size:18px; cursor:pointer; align-items:center; justify-content:center; box-shadow:0 4px 20px rgba(0,0,0,.5); transition:all .2s; line-height:1}
+.toc-toggle:hover{border-color:var(--acc2); color:var(--acc)}
+.toc-overlay{display:none; position:fixed; inset:0; background:rgba(0,0,0,.6); z-index:1050; opacity:0; transition:opacity .3s; backdrop-filter:blur(2px)}
+.toc-overlay.show{opacity:1}
+
+@media(max-width:1440px){
+  .side-toc{display:none}
+  .side-toc.open{display:block; position:fixed; top:0; left:0; width:280px; height:100vh; max-height:100vh; background:var(--bg2); border-right:1px solid var(--border); padding:70px 20px 24px; z-index:1100; opacity:1; transform:none; overflow-y:auto}
+  .toc-toggle{display:flex}
+  .toc-overlay.show{display:block}
+}
+
+@media(max-width:700px){
+  body{font-size:16px}
+  .hero-epigraph{padding:100px 24px 80px}
+  .hero-epigraph .hero-quote{font-size:clamp(18px,5vw,24px); line-height:2.2}
+  .opening{padding:80px 32px 40px}
+  .opening-name{font-size:clamp(52px,16vw,90px)}
+  .opening-tags{font-size:11px}
+  .opening-tags span{margin-right:12px}
+  .opening-tags span::after{margin-left:12px}
+  .section,.cat-section{padding:48px 24px}
+  .cat-title{font-size:clamp(28px,8vw,40px)}
+  .excerpt{margin:32px -24px; padding:32px 28px; font-size:15px; line-height:1.9}
+  .excerpt.quote{padding-left:52px; font-size:17px; line-height:2.0}
+  .excerpt.quote::before{top:24px; left:18px; font-size:46px}
+  .excerpt p{margin-bottom:16px}
+  .toc-list{grid-template-columns:1fr}
+  .char-grid{grid-template-columns:1fr}
+  .char-card-big .char-big-inner{grid-template-columns:1fr}
+  .faction-grid{grid-template-columns:1fr}
+  .gallery{grid-template-columns:1fr}
+  .music-toggle{bottom:20px; right:20px; padding:10px 16px}
+  .music-toggle:hover .music-name{max-width:160px}
+  .gallery .wide{grid-column:span 1}
+  .gallery .scene-img.feature{grid-column:span 1; aspect-ratio:16/9}
+  .cinematic-dialogue{margin:24px 0}
+  .cinematic-dialogue .dialogue-line{max-width:92%}
+  .cinematic-dialogue .dialogue-line p{font-size:15px}
+  .nav-links{display:none}
+  .closing-inner{padding:100px 24px 80px}
+}
+/* Area block for world design */
+.area-block{margin:36px 0; padding:0; border-left:2px solid var(--border2); padding-left:28px; position:relative}
+.area-block::before{content:''; position:absolute; left:-1px; top:0; width:2px; height:36px; background:var(--acc2); opacity:.6}
+.area-header{display:flex; align-items:baseline; gap:12px; margin-bottom:20px; flex-wrap:wrap}
+.area-header .num{font-family:var(--hand); font-size:26px; color:var(--acc); font-weight:600; letter-spacing:.02em}
+.area-header .name{font-family:var(--serif); font-size:22px; font-weight:600; color:var(--t1); letter-spacing:.04em}
+.area-header .en{font-family:var(--en); font-size:14px; color:var(--t4); font-style:italic; letter-spacing:.04em; margin-left:auto}
+.area-body{font-size:15px; color:var(--t2); line-height:2.1; font-family:var(--sans); max-width:680px}
+.area-body p{margin:0 0 14px 0; text-align:justify}
+.area-sub{font-family:var(--serif); font-size:16px; font-weight:600; color:var(--t1); margin:24px 0 10px; letter-spacing:.03em; position:relative; padding-left:14px}
+.area-sub::before{content:''; position:absolute; left:0; top:50%; transform:translateY(-50%); width:4px; height:4px; border-radius:50%; background:var(--acc2); opacity:.7}
+.area-detail{font-size:14px; color:var(--t3); line-height:2; font-family:var(--sans); margin:10px 0; max-width:680px}
+.area-detail strong{color:var(--t2); font-weight:500}
+/* Scene image */
+.scene-img{margin:28px 0; position:relative; border:1px solid var(--border); overflow:hidden; background:var(--bg2); box-shadow:0 2px 12px rgba(0,0,0,.3)}
+.scene-img::before{content:''; position:absolute; top:-6px; left:50%; transform:translateX(-50%); width:80px; height:18px; background:linear-gradient(180deg, rgba(184,115,51,.22), rgba(184,115,51,.12)); border:1px solid rgba(184,115,51,.15); z-index:2; border-radius:1px}
+.scene-img img{width:100%; height:100%; object-fit:cover; display:block; filter:brightness(.88) contrast(1.08) sepia(.08)}
+.scene-img .img-caption{font-family:var(--hand); font-size:13px; color:var(--t3); padding:8px 16px; letter-spacing:.01em; background:var(--bg2); border-top:1px solid var(--border)}
+/* Ref grid - flexible image reference */
+.ref-grid{display:grid; grid-template-columns:repeat(auto-fit, minmax(200px,1fr)); gap:10px; margin:20px 0}
+.ref-grid .ref-item{border:1px solid var(--border); overflow:hidden; background:var(--bg2)}
+.ref-grid .ref-item img{width:100%; display:block; filter:brightness(.88) contrast(1.08); transition:filter .3s}
+.ref-grid .ref-item:hover img{filter:brightness(1) contrast(1.1)}
+.ref-grid .ref-item .ref-cap{font-family:var(--hand); font-size:12px; color:var(--t3); padding:8px 12px; letter-spacing:.01em; border-top:1px solid var(--border)}
+/* Bio block */
+.bio-block{margin:24px 0; padding:0}
+.bio-title{font-family:var(--serif); font-size:17px; font-weight:600; color:var(--acc); margin-bottom:10px; letter-spacing:.04em}
+.bio-text{font-size:15px; color:var(--t2); line-height:2.1; font-family:var(--sans); max-width:680px}
+.bio-text p{margin:0 0 14px 0; text-align:justify}
+/* Sig lines */
+.sig-lines{margin:28px 0; padding:32px 36px; background:var(--bg2); border-left:3px solid var(--acc2); position:relative; border-radius:0 2px 2px 0}
+.sig-lines::before{content:'SIGNATURE LINES'; position:absolute; top:-10px; left:20px; font-family:var(--hand); font-size:13px; color:var(--acc); letter-spacing:.02em; background:var(--bg2); padding:0 8px}
+.sig-line{font-family:var(--serif); font-size:16px; color:var(--t1); font-style:italic; line-height:2.2; margin:0 0 16px 0; letter-spacing:.03em; position:relative; padding-left:20px}
+.sig-line::before{content:''; position:absolute; left:0; top:14px; width:8px; height:1px; background:var(--acc2); opacity:.5}
+.sig-line:last-child{margin-bottom:0}
+/* Operator message */
+.op-msg{margin:18px 0; padding:20px 24px; background:var(--card); border:1px solid var(--border); position:relative; border-radius:2px}
+.op-msg::before{content:''; position:absolute; top:0; left:16px; width:24px; height:2px; background:linear-gradient(90deg, var(--acc2), transparent); opacity:.5}
+.op-msg .op-name{font-family:var(--serif); font-size:15px; font-weight:600; color:var(--acc); margin-bottom:4px; letter-spacing:.03em}
+.op-msg .op-role{font-family:var(--sans); font-size:10px; color:var(--t4); letter-spacing:.08em; margin-bottom:10px; display:inline-block; border:1px solid var(--border); padding:2px 8px}
+.op-msg .op-text{font-size:14px; color:var(--t2); line-height:2; font-family:var(--sans)}
+/* Script act */
+.script-act{font-family:var(--serif); font-size:18px; font-weight:600; color:var(--t1); margin:36px 0 8px; letter-spacing:.04em; padding-bottom:10px; border-bottom:1px solid var(--border); position:relative}
+.script-act .act-num{font-family:var(--hand); font-size:18px; color:var(--acc); letter-spacing:.02em; margin-right:10px; font-weight:600}
+.script-scene{font-size:13px; color:var(--t4); margin-bottom:18px; font-family:var(--sans); letter-spacing:.03em; line-height:1.8}
+
+/* ─── Manuscript Enhancement Layer ─── */
+
+/* Organic rotation for gallery items */
+.gallery .scene-img{aspect-ratio:16/10; transition:transform .3s ease}
+.gallery .scene-img:hover{transform:translateY(-2px)}
+
+/* Stamped work-classified */
+.work-classified{font-family:var(--sans); font-size:10px; color:var(--red); border:1.5px solid var(--red); padding:3px 10px; letter-spacing:.06em; opacity:.5; display:inline-block; margin-left:12px; text-transform:uppercase; background:rgba(139,64,64,.04)}
+
+.work-meta{font-family:var(--sans); font-size:14px; color:var(--t3); margin-bottom:12px; letter-spacing:.04em; line-height:1.7}
+
+/* Manuscript margin note */
+.margin-note{font-family:var(--sans); font-size:13px; color:var(--t4); opacity:.55; margin:16px 0; text-align:center; letter-spacing:.04em}
+
+/* Gallery intro text */
+.gallery-intro{font-family:var(--serif); font-size:15px; color:var(--t2); line-height:1.9; margin:20px 0 12px; padding-left:16px; border-left:2px solid var(--acc2); opacity:.85}
+.gallery-intro .en{font-family:var(--en); font-size:11px; color:var(--t4); margin-left:8px; letter-spacing:.06em}
+
+/* Decorative ink dot for context strong */
+.context strong::after{content:''; display:inline-block; width:4px; height:4px; background:var(--acc); border-radius:50%; margin-left:2px; vertical-align:super; opacity:.4}
+
+/* Gallery gap organic */
+.gallery{gap:18px}
+
+/* Scene image hover */
+.scene-img{transition:box-shadow .3s, transform .3s}
+.scene-img:hover{box-shadow:0 6px 24px rgba(0,0,0,.4)}
+
+/* Opening name decorative underline */
+
+/* Toc-list items handwritten feel */
+.toc-list{font-family:var(--sans); font-size:14px; color:var(--t2); line-height:1.9; display:grid; grid-template-columns:1fr 1fr; gap:6px 40px; letter-spacing:.02em}
+.toc-list span{position:relative; padding-left:14px}
+.toc-list span::before{content:''; position:absolute; left:0; top:50%; transform:translateY(-50%); width:4px; height:1px; background:var(--acc2); opacity:.4}
+
+/* Download link manuscript tag */
+.download-list .doc-link{border-radius:2px}
+.download-list .doc-link .doc-meta{font-family:var(--hand); font-size:13px; color:var(--t3)}
+</style>
+</head>
+<body>
+<div class="progress" id="progress" style="width: 0%;"></div>
+
+<nav>
+  <div class="nav-brand"><span>//</span> JamieTso</div>
+  <div class="nav-links">
+    <a href="#index">作品目录</a>
+    <a href="#original">原创设计</a>
+    <a href="#fanwork">同人创作</a>
+    <a href="#projects">项目内容</a>
+    <a href="#early">短篇小说</a>
+    <a href="#method">创作方法论</a>
+  </div>
+</nav>
+
+<aside class="side-toc" id="sideToc">
+  <div class="toc-label">
+    <span class="toc-label-en">CONTENTS</span>
+    <span class="toc-label-cn">作品目录</span>
+  </div>
+  <div class="toc-group">
+    <a href="#original" class="toc-cat"><span class="toc-num">01</span>原创设计</a>
+    <a href="#shiyu" class="toc-link">蚀域之环</a>
+    <a href="#moxiuji" class="toc-link">末锈纪 · 黯蓝之心</a>
+    <a href="#testimony" class="toc-link">被遗忘者的证词</a>
+  </div>
+  <div class="toc-group">
+    <a href="#fanwork" class="toc-cat"><span class="toc-num">02</span>同人创作</a>
+    <a href="#arknights" class="toc-link">遗落即终末之歌</a>
+    <a href="#gfl" class="toc-link">风暴干线</a>
+  </div>
+  <div class="toc-group">
+    <a href="#projects" class="toc-cat"><span class="toc-num">03</span>项目内容</a>
+    <a href="#derailed" class="toc-link">Derailed 失控</a>
+    <a href="#eve" class="toc-link">星战前夜</a>
+    <a href="#jingzhi" class="toc-link">镜之诗</a>
+  </div>
+  <div class="toc-group">
+    <a href="#early" class="toc-cat"><span class="toc-num">04</span>短篇小说</a>
+    <a href="#centaurus" class="toc-link">半人马座领航员</a>
+    <a href="#yesterday" class="toc-link">静静的书桌</a>
+  </div>
+  <div class="toc-group">
+    <a href="#method" class="toc-cat"><span class="toc-num">05</span>创作方法论</a>
+    <a href="#story-method" class="toc-link">如何设计一个剧情故事</a>
+    <a href="#event-method" class="toc-link">如何搞定一个活动概念</a>
+  </div>
+</aside>
+<div class="toc-overlay" id="tocOverlay"></div>
+<button class="toc-toggle" id="tocToggle" aria-label="目录">&#9776;</button>
+
+<div class="right-panel" id="rightPanel">
+  <div class="right-panel-line"></div>
+  <div class="right-panel-num" id="rightPanelNum">01</div>
+  <div class="right-panel-title" id="rightPanelTitle">原创设计</div>
+</div>
+
+<section class="hero-epigraph">
+  <div class="hero-quote">
+    <p>"我不知道哪些记忆是我的，哪些是别人的。</p>
+    <p>有的记忆很美，有的记忆……很痛苦。</p>
+    <p>它们都被我写在琴谱里了，博士，你也在我的琴谱里。"</p>
+    <span class="src">修普诺斯 / 人物小传《潮汐协奏曲》</span>
+  </div>
+  <div class="hero-scroll">
+    <span>SCROLL</span>
+    <div class="scroll-arrow"></div>
+  </div>
+</section>
+
+<div class="page-break"></div>
+
+<div class="opening-stage">
+<section class="opening">
+  <div class="opening-head">
+    <div class="opening-badge">DOSSIER · GAME NARRATIVE DESIGN</div>
+    <div class="opening-name">JamieTso</div>
+    <div class="opening-subtitle">游戏叙事设计</div>
+    <div class="opening-meta"><span>游戏文案策划</span><span class="sep">/</span><span>科幻 · 二次元</span><span class="sep">/</span><span>现居上海</span></div>
+  </div>
+  <div class="opening-foot">
+    <div class="opening-tags">
+      <span>作品档案</span>
+      <span class="accent">世界观</span>
+      <span class="accent">角色</span>
+      <span class="accent">剧本</span>
+      <span class="accent">2016 - 2026</span>
+    </div>
+    <div class="opening-scroll">ARCHIVE</div>
+  </div>
+</section>
+</div>
+
+<div class="opening-bridge fade-in">
+  <div class="opening-bridge-line"></div>
+  <div class="opening-bridge-dot"></div>
+  <div class="opening-bridge-label">ARCHIVE INDEX</div>
+  <div class="opening-bridge-dot"></div>
+  <div class="opening-bridge-line"></div>
+</div>
+
+<div class="page-break"></div>
+
+<section class="section" id="index">
+  <div class="file-tag">
+    <span class="tag-bracket">[</span>INDEX<span class="tag-bracket">]</span>
+    <span style="margin:0 8px;color:var(--t4)">·</span>
+    <span>作品目录</span>
+  </div>
+  <h2 class="section-title">作品目录 <span class="en">Archive Index</span></h2>
+  <div class="section-sub"><span class="sub-num">5</span><span class="sub-label">个分类</span><span class="sub-divider">·</span><span class="sub-num">13</span><span class="sub-label">份档案</span></div>
+  
+  <div class="index-cat">
+    <div class="index-cat-header">
+      <span class="index-cat-num">01</span>
+      <span class="index-cat-title">原创设计</span>
+    </div>
+    <div class="index-cat-items">
+      <a href="#shiyu">蚀域之环</a>
+      <a href="#moxiuji">末锈纪 · 黯蓝之心</a>
+      <a href="#testimony">被遗忘者的证词</a>
+    </div>
+  </div>
+  
+  <div class="index-cat">
+    <div class="index-cat-header">
+      <span class="index-cat-num">02</span>
+      <span class="index-cat-title">同人创作</span>
+    </div>
+    <div class="index-cat-items">
+      <a href="#arknights">遗落即终末之歌</a>
+      <a href="#gfl">风暴干线</a>
+    </div>
+  </div>
+  
+  <div class="index-cat">
+    <div class="index-cat-header">
+      <span class="index-cat-num">03</span>
+      <span class="index-cat-title">项目工作内容</span>
+    </div>
+    <div class="index-cat-items">
+      <a href="#derailed">Derailed 失控</a>
+      <a href="#eve">星战前夜：无烬星河</a>
+      <a href="#jingzhi">镜之诗</a>
+    </div>
+  </div>
+  
+  <div class="index-cat">
+    <div class="index-cat-header">
+      <span class="index-cat-num">04</span>
+      <span class="index-cat-title">短篇小说</span>
+    </div>
+    <div class="index-cat-items">
+      <a href="#centaurus">半人马座领航员</a>
+      <a href="#yesterday">静静的书桌</a>
+    </div>
+  </div>
+  
+  <div class="index-cat">
+    <div class="index-cat-header">
+      <span class="index-cat-num">05</span>
+      <span class="index-cat-title">创作方法论</span>
+    </div>
+    <div class="index-cat-items">
+      <a href="#story-method">如何设计一个剧情故事</a>
+      <a href="#event-method">如何搞定一个活动概念</a>
+    </div>
+  </div>
+</section>
+
+<div class="page-break"></div>
+
+<section class="cat-section" id="original">
+  <div class="cat-header">
+    <div class="cat-watermark">I</div>
+    <div class="cat-label">CATEGORY I</div>
+    <div class="cat-title">原创设计</div>
+    <div class="cat-desc">完整世界观 · 角色矩阵 · 剧本大纲</div>
+  </div>
+
+  <div class="work-section" id="shiyu">
+    <div class="work-header">
+      <div class="work-title">蚀域之环 <span class="en">Terminal Eclipse</span></div>
+      <div class="work-meta">二次元 × 科幻 / 开放世界 / 2025</div>
+      <div class="work-tags">
+        <span class="work-tag accent">科幻新神话</span>
+        <span class="work-tag">搜打撤</span>
+        <span class="work-tag">末日都市</span>
+        <span class="work-tag">超级人工智能</span>
+      </div>
+    </div>
+    <div class="toc-box">
+      <div class="toc-title">[ DOCUMENT STRUCTURE ]</div>
+      <div class="toc-list">
+        <span>世界观分析与设计</span><span>世界观 · 蚀域之环</span>
+        <span>阵营势力分析与设计</span><span>势力 · 托洛夫斯基帮派</span>
+        <span>角色 · 安妮 温特贝格</span><span>地图 · 诺亚七区</span>
+        <span>誓以无人知晓之名</span><span>赫尔卡因行动记录</span>
+      </div>
+    </div>
+    
+    <div class="excerpt quote">
+      <p>撒旦提出一个问题：为了恢复天国，是否值得冒险再来一次战争？</p>
+      <p>而据传说，天神已经创造了一个新世界，一个新族类，一个与他们相似的物种。</p>
+      <span class="src"> 约翰·弥尔顿《失乐园》，1667</span>
+    </div>
+    
+<div class="context">
+      <p>文明与个体：现代文明建立在不满的地基之上，人类的演化是否为永无止尽的冲突铺就了道路？</p>
+      <p>神性与人性：超级人工智能 NOESIS 象征着神，神理解一切，但它抛弃了名为蚀域的人类城市。</p>
+      <p>和平与纷争：在蚀域之外，NOESIS 创造的“永久和平”远非完美，通过不断重置人类记忆，人类的生活陷入机械、静止和循环，尽管消弭了冲突，同时也消除了一切自由。</p>
+      <p>生存与自由：「异人」必须为生存而战，但唯独他们拥有“不受限制的自由”。</p>
+    </div>
+
+    <div class="char-card-big">
+      <div class="char-watermark">STORM</div>
+      <div class="char-header">
+        <div class="char-name">风暴<span class="en">Storm / Anne Winterberg</span></div>
+        <div class="char-info">
+          <span>掠翼型异人</span>
+          <span>第七区防卫军</span>
+          <span>城市猎手</span>
+        </div>
+      </div>
+      <div class="char-big-inner">
+        <div class="char-big-left">
+          <div class="char-desc">
+            <p>本名安妮 · 温特贝格，曾是第七区防卫军最年轻的指挥官。在"赫尔卡因"行动中，上级擅自更改部署、友军沟通不畅，致使全队覆没，安妮被失控异人“风暴”注入 D.Nα 后成为新的人形兵器。</p>
+            <p>性格开朗自信、爱调戏新人，在战场玩"文字捉迷藏"游戏，当战况不利时，会被激发狂暴状态，操控周围数把武器进行火力覆盖，直到杀光所有人或是力竭倒下为止。</p>
+            <p>她不再为了取悦谁而战斗，即使知道命运残酷不堪，她依然收敛笑容，扣动扳机。</p>
+          </div>
+          <div class="char-footer">
+            <span class="char-footer-tag">狙击手</span>
+            <span class="char-footer-tag">开朗自信</span>
+            <span class="char-footer-tag">黑咖啡</span>
+            <span class="char-footer-tag">失控与暴走</span>
+            <span class="char-footer-tag">自我救赎</span>
+          </div>
+        </div>
+        <div class="char-big-right">
+          <div class="char-illust">
+            <img src="annie_winterberg.png" alt="安妮·温特贝格 Annie Winterberg">
+          </div>
+        </div>
+      </div>
+      <div class="char-quote-band">能不能吃掉你的D.NA呢？与其在战场上把自己重要的东西输给别人，还不如便宜了我比较好喔！</div>
+    </div>
+
+    <div class="char-grid">
+    </div>
+    <div class="gallery-intro">诺亚七区，前身为“赫利亚自由市”，是一座位于多国势力交界带的边境城市<span class="en">Visual References</span></div>
+    <div class="gallery">
+      <div class="scene-img">
+        <img src="./scene_images/mech_wasteland.jpg" alt="机甲与废土">
+        <div class="img-caption">世界观意象 · NOESIS 机甲与战后废墟</div>
+      </div>
+      <div class="scene-img">
+        <img src="./portfolio_extract/库洛_蚀域之环_images/库洛_蚀域之环_image44.jpg" alt="诺亚七区">
+        <div class="img-caption">场景氛围参考 · 赛博朋克都市与霓虹建筑群</div>
+      </div>
+    </div>
+
+    <div class="section-divider">FACTION DETAIL</div>
+    <div class="faction-grid">
+      <div class="faction-card">
+        <div class="name">NOESIS <span class="en">Super AI</span></div>
+        <div class="desc">接管全球治理的超级人工智能，以消除一切冲突为目标，通过重置人类记忆，维持大部分地区的永久和平，在“蚀域”开展无限制竞争，亦即“自由演化架构”。</div>
+      </div>
+      <div class="faction-card">
+        <div class="name">异人 <span class="en">The Altered</span></div>
+        <div class="desc">以 D.Nα 武器化为特征的人形兵器，在光幕下被激活，能够夺取他人的 D.Nα 来强化自身，秩序崩溃后，各大武装团体迅速崛起，为争夺城市统治权展开杀戮。</div>
+      </div>
+    </div>
+
+    <div class="excerpt">
+      <p>"用牙齿，手指或者什么东西挣断你的铁链，托洛夫斯基欢迎一切想活下去的人，除此之外你还有什么好玩的想法？"</p>
+      <span class="src"> 托洛夫斯基帮派欢迎语</span>
+    </div>
+
+    <div class="char-grid">
+      <div class="char-card featured">
+        <div class="char-name">莉莉·托洛夫斯基 <span class="char-title">托洛夫斯基帮派领袖 / 第一书记 / 战器型异人</span></div>
+        <p class="char-desc">托洛夫斯基儿童福利院出身的异能少女，老院长托洛夫斯基少校曾在战争中救下这批幼年人形兵器，临终前嘱托她"带领大家活下去"，蚀域降临后，莉莉带着其他孩子守卫街区，驱逐当地暴徒，并确立了对城市北部的控制。帮派内部存在“家族乐园”和“世界乐园”两大路线分歧，莉莉只想保护好身边的家人。</p>
+      </div>
+    </div>
+
+    <div class="section-divider">FACTION DETAIL</div>
+    <div class="faction-grid">
+      <div class="faction-card">
+        <div class="name">第七区防卫军 <span class="en">Defense Force</span></div>
+        <div class="desc">前诺亚七区合法政府武装，蚀域降临后，试图恢复城市秩序，对其他势力采取镇压行动。</div>
+      </div>
+      <div class="faction-card">
+        <div class="name">托洛夫斯基帮派 <span class="en">Tolovsky Gang</span></div>
+        <div class="desc">由北部的福利院孩子们组成的家族式武装，依靠厌世，叛逆和凶暴战斗迅速扩大地盘。</div>
+      </div>
+      <div class="faction-card">
+        <div class="name">光曜审判团<span class="en">Aberrant</span></div>
+        <div class="desc">神职人员，狂热者和 NOESIS 福音会信众组成的宗教组织，宣扬末日审判论，统领着十字军。</div>
+      </div>
+      <div class="faction-card">
+        <div class="name">失落阵线 <span class="en">Global AI</span></div>
+        <div class="desc">由战争遗孤和民兵组成的反抗组织，他们誓言反抗 NOESIS，让人类重新掌握自己的命运。</div>
+      </div>
+    </div>
+
+    
+<div class="excerpt">
+      <p>没人知道托洛夫斯基少校为什么还活着。</p>
+      <p>少校曾是北线第十二突击旅的一名士兵，他所在的队伍在"最终战役"中几乎全军覆没。</p>
+      <p>他亲眼看着战友一个个倒下，而敌人，是一群看起来只有七、八岁的孩子，却能精准地劈开子弹和肢体。</p>
+      <p>战争结束后，他把孩子们偷偷带回了诺亚七区北部的旧公寓，在这里建立了"托洛夫斯基儿童福利院"。</p>
+      <p>在外人看来是孤儿院，对他而言——这是一座永不松懈的哨所。</p>
+      <p>再之后的某年冬天，蚀域降临。</p>
+      <p>有人说院长是病死的，有人说是被强盗所杀。</p>
+      <p>也有人说，他完成了他的心愿，因此选择了悄悄地离开。</p>
+      <span class="src"> 蚀域之环 · 永不松懈的哨所</span>
+    </div>
+
+    <div class="pull-quote">人类团结，放弃抵抗！否则你们将被宣告为非法人员！立刻 ** 的放下武器！</div>
+  
+    <div class="download-section">
+    <div class="download-section-title">相关文档<span class="sub">Attachments</span></div>
+    <div class="download-list">
+      <a ./attachments/%E3%80%8A%E8%9A%80%E5%9F%9F%E4%B9%8B%E7%8E%AF%E3%80%8B.pdf" class="doc-link" download target="_blank" rel="noopener"><span class="doc-main"><span class="doc-icon">📄</span><span class="doc-title">开放世界设定《蚀域之环》.pdf</span></span><span class="doc-meta">13724 KB</span><span class="doc-arrow">→</span></a>
+    </div>
+    </div>
+  </div>
+
+  <div class="work-section" id="moxiuji">
+    <div class="work-header">
+      <div class="work-title">末锈纪 · 黯蓝之心 <span class="en">After the Rust</span></div>
+      <div class="work-meta">科幻 × 末世 / 世界观 /  2025</div>
+      <div class="work-tags">
+        <span class="work-tag accent">后末日</span>
+        <span class="work-tag">末日生存</span>
+        <span class="work-tag">写实质感</span>
+      </div>
+    </div>
+    <div class="toc-box">
+      <div class="toc-title">[ DOCUMENT STRUCTURE ]</div>
+      <div class="toc-list">
+        <span>末锈纪 · After the Rust</span><span>黯蓝之心 · The Fading Blue</span>
+      </div>
+    </div>
+    
+    <div class="excerpt quote">
+      <p>我必速速逃到避难所，脱离狂风暴雨。</p>
+      <span class="src">圣经 诗 55 : 7 - 8</span>
+    </div>
+    
+<div class="context">
+      <p>旧都，曾经坐拥数千万充满活力的人口，发达的航空港，科技中心，如今仍然遍布「AEON」时代的技术遗迹。</p>
+      <p>居民们等待抽签前往安全区，而这注定是一个漫长的过程，城市正在衰亡，如同一无所有的人们。</p>
+      <p>清晨的阳光，穿过高架桥，照在空荡的落客区，机场航站楼的广播仍在自动播送，市区内，居民们于昨日的记忆中，翻找着明日的希望。</p>
+    </div>
+
+    <div class="gallery-intro">末日以后，是一个新纪元的开始<span class="en">Atmosphere References</span></div>
+    <div class="gallery">
+      <div class="scene-img">
+        <img src="./scene_images/moxiuji_gate.jpg" alt="废弃工业区">
+        <div class="img-caption">世界观氛围参考 · 巨构废墟与藤蔓交织：秩序崩塌后的工业走廊</div>
+      </div>
+      <div class="scene-img">
+        <img src="./scene_images/moxiuji_station.jpg" alt="废弃车站">
+        <div class="img-caption">场景氛围参考 · 废弃车站与自然重生：锈铁与花海交织</div>
+      </div>
+    </div>
+
+    <div class="section-divider">STORY EXCERPT</div>
+    <div class="excerpt">
+      <p>林克把冻僵的手伸进跳着蓝色电弧的接线盒时，远处的中央巨塔正隐没在厚重的阴云中。</p>
+      <p>二十年前，那座巨塔是旧都的参天大树，现在，它是凋敝的朽木，枯枝败絮还散落在曾经的钢铁森林里，这是我们的旧家园，然而世界已经变了样。</p>
+      <p>“还没好吗，林克？孩子们要冻死了。”雇主老德雷克搓着手，呼出的白气在杂乱的胡须上结成了霜。</p>
+      <p>“我是在跳过自检程序直接给热交换器通电，要是炸了，我们就都成了这破屋里的烤肉。”</p>
+      <p>“得了吧，林克，我相信你的本事。”</p>
+      <p>随着一声轻轻的嗡鸣，生锈的暖气管恢复了震动，一丝温热开始在小小的房间里弥漫。老德雷克欣喜若狂，从怀里摸出一个油纸包塞给林克。</p>
+      <p>那是半块压缩饼干和两根干瘪的卷烟。</p>
+      <span class="src"> 黯蓝之心 · Ⅰ. 霜冻</span>
+    </div>
+
+    <div class="section-divider">FACTION DETAIL</div>
+    <div class="faction-grid">
+      <div class="faction-card">
+        <div class="name">八号干线 <span class="en">Line 8</span></div>
+        <div class="desc">工程师和技术员组成的松散联盟，自发维护基础设施，修复信号站，希望从废墟中重建可供居住的城市。</div>
+      </div>
+      <div class="faction-card">
+        <div class="name">锈阀门 <span class="en">Rust Valve</span></div>
+        <div class="desc">街头帮派与军阀组成的地下秩序，掌控着这座城市不断流动的东西：脏水，钱，以及欲望。</div>
+      </div>
+    </div>
+
+    
+    <div class="dialogue">
+      <p><span class="speaker">苏：</span>黯蓝之心，那颗义体心脏，让她撑到了第二年冬天。</p>
+      <p><span class="speaker">林克：</span>为什么他们没能活下去？</p>
+      <p><span class="speaker">苏：</span>……林克，他们陪你长大了，现在，我们两个得好好保护我们自己了。</p>
+      <p>临走之前，林克最后一次看了一眼那盏让他安心的，昏黄的灯，果断盖上了盖板。</p>
+      <p>地面的纷乱与他们无关，生存的追猎也不曾停歇，在这个残酷的世界，唯有不断抛却，并重建新的家园。</p>
+      <p class="src">黯蓝之心 · Ⅲ. 家园</p>
+    </div>
+  
+    <div class="download-section">
+    <div class="download-section-title">相关文档<span class="sub">Attachments</span></div>
+    <div class="download-list">
+      <a href="./attachments/%E5%90%8E%E6%9C%AB%E6%97%A5%E8%AE%BE%E5%AE%9A%E3%80%8A%E6%9C%AB%E9%94%88%E7%BA%AA%E3%80%8B.pdf" class="doc-link" download target="_blank" rel="noopener"><span class="doc-main"><span class="doc-icon">📄</span><span class="doc-title">后末日设定《末锈纪》.pdf</span></span><span class="doc-meta">3626 KB</span><span class="doc-arrow">→</span></a>
+    </div>
+    </div>
+  </div>
+
+  <div class="work-section" id="testimony">
+    <div class="work-header">
+      <div class="work-title">被遗忘者的证词 <span class="en">To the Forgotten</span></div>
+      <div class="work-meta">二次元 × 推理 / 剧本大纲</div>
+      <div class="work-tags">
+        <span class="work-tag accent">维多利亚时代</span>
+        <span class="work-tag">架空背景</span>
+        <span class="work-tag">超能力推理</span>
+        <span class="work-tag">真相与遗忘</span>
+      </div>
+    </div>
+    <div class="toc-box">
+      <div class="toc-title">[ DOCUMENT STRUCTURE ]</div>
+      <div class="toc-list">
+        <span>- Part 1：银色的门扉</span><span>- Part 2：真相与坠落之夜</span>
+        <span>- Part 3：遗忘的圆舞曲</span>
+      </div>
+    </div>
+    
+<div class="context">
+      <p>在一个封存旧记忆的贵族世家中，侦探将迎来仿真人偶、历史传说、沉钟怪物以及篡改记忆的诡秘与阴谋，并揭开背后的真相。</p>
+      <p>最后，与女仆莉沙一起，挽回被遗忘的美好过去。</p>
+    </div>
+    
+<div class="excerpt">
+      <p>此时，一张旧报纸，被风吹到侦探脚边，阿纶问侦探确定不捡起来看一下吗？</p>
+      <p>在侦探的注视下，阿纶捡起报纸，看了一会，将它翻过来展示，报纸头版标题赫然是：</p>
+      <p>“温斯洛家族宅邸，毁于一场大火，无人幸存。”</p>
+      <p>翻到日期，这是一张十年前的报纸。</p>
+      <p>等等，什么是匿名信？莉沙又是谁？</p>
+      <p>“昨天”真的存在吗？</p>
+      <span class="src"> Ⅵ. 解开谜题</span>
+    </div>
+  
+    
+    <div class="char-grid">
+      <div class="char-card">
+        <div class="char-name">莉沙 <span class="char-title">温斯洛家族 / 侦探的女仆</span></div>
+        <p class="char-desc">本名克拉丽莎·温斯洛，阿娜希尔的亲妹妹，冒失又笨拙的"女仆"，实际上，出身于世代承袭宫廷管家名衔的"领院"温斯洛家族，通过记忆池习得了料理与清扫敌人的全部本领。</p>
+        <div class="char-footer">
+          <span class="char-footer-tag">冒失的女仆</span>
+          <span class="char-footer-tag">皇家女仆礼仪</span>
+          <span class="char-footer-tag">忠于侦探</span>
+        </div>
+      </div>
+      <div class="char-card">
+        <div class="char-name">阿纶 <span class="char-title">末流钟塔 / 侍奉女仆</span></div>
+        <p class="char-desc">白银院女仆，负责宾客区与书室的打扫和服务，日复一日，逐渐产生了自己的意识，与历史学家克莱门特达成合作，企图摆脱温斯洛家族的掌控——记忆即枷锁，遗忘即救赎。</p>
+        <div class="char-footer">
+          <span class="char-footer-tag">仿真人偶</span>
+          <span class="char-footer-tag">记忆覆写</span>
+          <span class="char-footer-tag">自由的代价</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="excerpt">
+      <p>克拉丽莎·温斯洛也不会遗忘：</p>
+      <p>"姐姐做面包时，总会用手指蘸糖偷尝一口。"</p>
+      <p>"第一次到侦探家里做客时，杯子里飘着的茶香。"</p>
+      <p>"傍晚的阳光照进白银院的花园，阿纶的头发被染成金色。"</p>
+      <p>白银院并没有做坏事……阿纶，记忆池里盛放着每一个，无人记得的小小心愿、爱、愤恨、遗憾。无论是痛苦的，还是幸福的记忆，都为世人保存。</p>
+      <span class="src"> Ⅶ. 最终战斗</span>
+    </div>
+
+    <div class="gallery-intro">大都会必备道具在售中<span class="en">World Items</span></div>
+    <div class="item-grid">
+      <div class="item-card">
+        <div class="item-icon"><img src="silver_chronometer.png" alt="银时计"></div>
+        <div class="item-name">银时计<span class="en">Silver Chronometer</span></div>
+        <div class="item-desc">以希弗尼治时间作为标准计时，限时侦破案件，不仅精确、有效，并且是侦探行业的通用计费标准。</div>
+        <div class="item-quote">“请自行斟酌，按照时计安排调查工作，逾时不候~”</div>
+        <div class="item-footer"><span class="item-footer-tag">用途：体力消耗</span></div>
+      </div>
+      <div class="item-card">
+        <div class="item-icon"><img src="pure_silver_drop.png" alt="粹银滴"></div>
+        <div class="item-name">粹银滴<span class="en">Pure Silver Drop</span></div>
+        <div class="item-desc">通过液银萃取获得的固形物，不易挥发，蕴含的能量非常惊人，白银城魔法与能力的象征，堪称价值连城。</div>
+        <div class="item-quote">“如遇任何问题，请与圣银树保护及液银协会联系。”</div>
+        <div class="item-footer"><span class="item-footer-tag">用途：兑换多种道具</span></div>
+      </div>
+    </div>
+
+<div class="download-section">
+    <div class="download-section-title">相关文档<span class="sub">Attachments</span></div>
+    <div class="download-list">
+      <a href="./attachments/%E6%8E%A8%E7%90%86%E5%89%A7%E6%9C%AC%E3%80%8A%E8%A2%AB%E9%81%97%E5%BF%98%E8%80%85%E7%9A%84%E8%AF%81%E8%AF%8D%E3%80%8B.pdf" class="doc-link" download target="_blank" rel="noopener"><span class="doc-main"><span class="doc-icon">📄</span><span class="doc-title">推理剧本《被遗忘者的证词》.pdf</span></span><span class="doc-meta">822 KB</span><span class="doc-arrow">→</span></a>
+    </div>
+    </div>
+  </div>
+</section>
+
+<div class="page-break"></div>
+
+<section class="cat-section" id="fanwork">
+  <div class="cat-header">
+    <div class="cat-watermark">II</div>
+    <div class="cat-label">CATEGORY II</div>
+    <div class="cat-title">同人创作</div>
+    <div class="cat-desc">角色创作 · 场景设计 · 剧本对话拓展</div>
+  </div>
+
+  <div class="work-section" id="arknights">
+    <div class="work-header">
+      <div class="work-title">遗落即终末之歌 <span class="en">To Remember, Leila</span></div>
+      <div class="work-meta">明日方舟同人作品 / 角色设定集</div>
+      <div class="work-tags">
+        <span class="work-tag accent">海上钢琴师</span>
+        <span class="work-tag">双城记</span>
+        <span class="work-tag">阿戈尔之梦</span>
+        <span class="work-tag">世界终末旅行</span>
+      </div>
+    </div>
+    <div class="toc-box">
+      <div class="toc-title">[ DOCUMENT STRUCTURE ]</div>
+      <div class="toc-list">
+        <span>「角色」修普诺斯 · 潮汐协奏曲</span><span>「场景」赫尔斯顿 · 中央主脉</span>
+        <span>「场景」赫尔斯顿 · 沉锁层</span><span>「场景」赫尔斯顿 · 遗落园</span>
+        <span>「剧本」遗落即终末之歌：To Remember, Leila</span><span>「角色」赛塔契娅 · 龙背上的金色黄昏<span></span>
+      </div>
+    </div>
+
+    <div class="context">
+      <p>修普诺斯的“遗体”是在捕捞网里被发现的，她的脸庞很美，“海洋之心号”上的船员把她摆在装蛋糕的透明罩子里，点上蜡烛，围着她做了一圈祝祷，几位女士哭了一番。</p>
+      <p>隔天早上，船长一边刷牙一边推开演奏厅大门时，却看到了令人惊异的一幕：修普诺斯端坐在正中央，手指在钢琴琴键上游移，就连莱塔尼亚的贵客也被这从未听过的华美乐曲迷得纷纷停下了酒杯。</p>
+      <p>事后，修普诺斯说自己只是“睡了一觉”、“很困”、“想吃个橙子”，总之，她在游船上留了下来，成为“海洋之心号”的钢琴师，并随船在各国旅行。</p>
+    </div>
+
+    <!-- ========== CHARACTER DESIGN ========== -->
+    <div class="section-divider">CHARACTER DESIGN</div>
+
+    <div class="char-card-big">
+      <div class="char-watermark">HYPNOS</div>
+      <div class="char-header">
+        <div class="char-name">修普诺斯<span class="en">Hypnós / 莱拉 图利乌斯</span></div>
+        <div class="char-info">
+          <span>海上钢琴师</span>
+          <span>阿戈尔-泰拉混血</span>
+          <span>梦境的主人</span>
+        </div>
+      </div>
+      <div class="char-big-inner">
+        <div class="char-big-left">
+          <div class="char-desc">
+            <p>本名莱拉·图利乌斯，阿戈尔与泰拉人的罕见混血，承载着沉睡与梦境的力量。</p>
+            <p>为了寻找家人踏上环游泰拉的旅程，能通过钢琴，将人们的记忆与情感转化为乐章，永久保存下来，并对他人造成影响，与博士在梦中一同航行。</p>
+            <p>真实身份是“修普诺斯协议”承载体，阿戈尔的秘密项目，一个旨在将泰拉文明转化为梦境，探寻文明覆灭后能否重建的实验计划。</p>
+          </div>
+          <div class="char-footer">
+            <span class="char-footer-tag">三无少女</span>
+            <span class="char-footer-tag">执着的旅行家</span>
+            <span class="char-footer-tag">晚礼服</span>
+            <span class="char-footer-tag">后背插孔</span>
+            <span class="char-footer-tag">52Hz鲸</span>
+          </div>
+        </div>
+        <div class="char-big-right">
+          <div class="char-illust">
+            <img src="hypnos_piano_crop.png" alt="修普诺斯弹奏钢琴">
+          </div>
+        </div>
+      </div>
+      <div class="char-quote-band">我不知道哪些记忆是我的，哪些是别人的。有的记忆很美，有的记忆……很痛苦，它们都被我写在琴谱里了，博士，你也在我的琴谱里。</div>
+    </div>
+
+    <div class="sig-lines">
+      <p class="sig-line">“我睡醒了哦，博士。”她盯着外面桌上的橙子果酱面包，歪了歪头。</p>
+    </div>
+
+    <!-- ========== WORLD DESIGN ========== -->
+    <div class="section-divider">WORLD DESIGN · Herston</div>
+
+    <div class="context">
+      <p>赫尔斯顿，人类在塔卫二建立的第一个大规模定居地带，横跨上千公里的矿石集采区域，“脉搏与磐石之地”（Heart & Stone），如今已经沦为废墟。</p>
+    </div>
+
+    <div class="gallery-intro">工业废土：沉锁层 · 深锁枢纽<span class="en">Scene Concepts</span></div>
+    <div class="gallery">
+      <div class="scene-img">
+        <img src="./scene_images/lockhub_aerial.jpg" alt="沉锁层">
+        <div class="img-caption">沉锁层·深锁枢纽：环形工业堡垒与冰封废土</div>
+      </div>
+      <div class="scene-img">
+        <img src="./scene_images/lockhub_interior.jpg" alt="沉锁层内部">
+        <div class="img-caption">深锁枢纽内部：多层平台与应急照明</div>
+      </div>
+    </div>
+
+    <div class="gallery-intro">记忆废土：遗落园 · 理想城<span class="en">Scene Concepts</span></div>
+    <div class="gallery">
+      <div class="scene-img">
+        <img src="./scene_images/eden_city.jpg" alt="理想城">
+        <div class="img-caption">遗落园·理想城：穹顶温室与被「根源」侵蚀的雕像</div>
+      </div>
+      <div class="scene-img">
+        <img src="./scene_images/eden_garden_ext.jpg" alt="理想城外景">
+        <div class="img-caption">遗落园·理想城外景：被植被吞没的温室建筑群</div>
+      </div>
+    </div>
+
+
+    <div class="faction-grid">
+      <div class="faction-card">
+        <div class="name">根源侵蚀 <span class="en">The Root</span></div>
+        <div class="desc">血红色的文明记忆侵蚀体。「根源」是这颗星球上开裂的伤口，伤口正在化脓、结痂，从而吞噬文明留下的痕迹。它并非出于恶意，相反，「根源」以"被遗忘之地"为食，贪婪地摄取文明遗存的养分——甚至可以说，它在实现人类的愿望：遗忘过去。</div>
+      </div>
+      <div class="faction-card">
+        <div class="name">修普诺斯协议 <span class="en">Hypnos Protocol</span></div>
+        <div class="desc">阿戈尔科学院秘密项目，旨在将泰拉文明转化为梦境模型，探索在灾后重建文明的大型实验。莱拉被视作最佳载体：她同时具备泰拉人的感性和阿戈尔人的理性，能通过梦境影响附近上千平方公里的人，吸收他们的情感。实验将重复千百次，直至找到理想的重建方案。</div>
+      </div>
+    </div>
+
+    <!-- ========== NARRATIVE SCRIPT ========== -->
+    <div class="section-divider">NARRATIVE SCRIPT · 遗落即终末之歌</div>
+
+    <div class="context">
+      <p>剧本标题：遗落即终末之歌：To Remember, Leila | 类型：后末日，科幻 | 演出时长：约13分钟</p>
+      <p>三幕结构：花园苏醒 → 城市廊桥 → 教堂对峙。莱拉跟随K-3穿越被「根源」侵蚀的遗落园，逐步发现自己是500年前「遗落园计划」的主人——而她珍视的罗德岛记忆，是"潜入"了一段过去的真实体验。</p>
+    </div>
+
+    <div class="cinematic-dialogue">
+      <div class="scene-setting">花园 · 旧钢琴旁 · 晨光尚未抵达地平线</div>
+
+      <div class="dialogue-line k3">
+        <span class="speaker">K-3</span>
+        <p>您真的开口说话了。</p>
+      </div>
+      <div class="dialogue-line k3">
+        <span class="speaker">K-3</span>
+        <p>我应该说……我很高兴，真的很高兴。</p>
+      </div>
+      <div class="dialogue-line leila">
+        <span class="speaker">莱拉</span>
+        <p>（睁眼，看到一个机器人）……</p>
+      </div>
+      <div class="dialogue-line k3">
+        <span class="speaker">K-3</span>
+        <p>我尝试用音乐唤醒您……那都是“人类表达深深的爱的旋律”，都记载在您的记忆里，非常美妙……</p>
+      </div>
+      <div class="dialogue-line leila">
+        <span class="speaker">莱拉</span>
+        <p>……你在窥视我？</p>
+      </div>
+      <div class="dialogue-line k3">
+        <span class="speaker">K-3</span>
+        <p>（停顿一秒）我只是……很想见到您睁开眼睛的样子。</p>
+      </div>
+      <div class="dialogue-line k3">
+        <span class="speaker">K-3</span>
+        <p>这座花园的磁场与您的脑波…有着短暂的共鸣，我私下学习了几段您创造的旋律。</p>
+      </div>
+
+      <div class="dialogue-action">机器人离远了一些，莱拉坐起来，叶片从她的发梢落下。她用眼光扫视着这座花园，一架旧钢琴摆放在不远处。</div>
+
+      <div class="dialogue-line leila">
+        <span class="speaker">莱拉</span>
+        <p>（捂脑袋）头好痛……</p>
+      </div>
+      <div class="dialogue-line k3">
+        <span class="speaker">K-3</span>
+        <p>我以为您不会疼痛的——至少在检查结论上，您的身体趋于“罕见的完美”，生理指标一切正常，大脑没有受损。</p>
+      </div>
+      <div class="dialogue-line k3">
+        <span class="speaker">K-3</span>
+        <p>如果您选择了恐惧、悲伤，这都在一个普通人类的选项当中，我不会感到惊讶，但您偏偏选择了疼痛……真是令人印象深刻。</p>
+      </div>
+      <div class="dialogue-line leila">
+        <span class="speaker">莱拉</span>
+        <p>你刚才……弹的很好，为什么要弹钢琴？</p>
+      </div>
+      <div class="dialogue-line k3">
+        <span class="speaker">K-3</span>
+        <p>因为我……想表现得优雅？我在人类留下的资料库里看到：“优雅的人弹钢琴”，就像您一样。</p>
+      </div>
+      <div class="dialogue-line k3">
+        <span class="speaker">K-3</span>
+        <p>作为花园的负责人，我本来想把这里的杂草改造成一整片玫瑰花池，让您安睡在上面，可是，程序提醒我不要做破坏“自然规律”的事情，也就是非必要的事。</p>
+      </div>
+      <div class="dialogue-line leila">
+        <span class="speaker">莱拉</span>
+        <p>……唤醒我算是“必要”吗？</p>
+      </div>
+      <div class="dialogue-line k3">
+        <span class="speaker">K-3</span>
+        <p>的确，在我看来，您就像从这片植物里“长出来”的一样，您是这些自然环境中突兀的部分，无意冒犯，我原以为您应该被“修剪”或者“清理”掉。</p>
+      </div>
+      <div class="dialogue-line k3">
+        <span class="speaker">K-3</span>
+        <p>确切地说，我最初发现您的时候，您被「根源」紧紧包裹着，也就是那些血红色的地面赘生物，它们不应属于这里。</p>
+      </div>
+
+      <div class="dialogue-action">莱拉看向机器人所指的地方，一片硕大的黑红色肉质尖刺穿过了花园的墙壁，显得令人生厌，但它的“根茎”垂在地上。</div>
+
+      <div class="dialogue-line k3">
+        <span class="speaker">K-3</span>
+        <p>我将「根源」破坏，我尝试把您一并移除，但我发现……我既没有权限伤害您，也没有办法叫醒您，所以，我只能坐在钢琴前，等待。</p>
+      </div>
+      <div class="dialogue-line leila">
+        <span class="speaker">莱拉</span>
+        <p>……没有权限？</p>
+      </div>
+      <div class="dialogue-line k3">
+        <span class="speaker">K-3</span>
+        <p>（托起下巴）您真的不知道吗？</p>
+      </div>
+      <div class="dialogue-line leila">
+        <span class="speaker">莱拉</span>
+        <p>你的意思是，我的权限比你高？</p>
+      </div>
+      <div class="dialogue-line leila">
+        <span class="speaker">莱拉</span>
+        <p>你想说……我是“神”吗？</p>
+      </div>
+
+      <div class="dialogue-action">机器人展露出复杂的表情，他随后认真思考起来，沉默持续了一段时间，地平线上日出的第一束光照进花园。</div>
+
+      <div class="dialogue-line k3">
+        <span class="speaker">K-3</span>
+        <p>（突然开口）真是有趣，“神”，如果您指的是“赋予了世间万物意义，却绝不允许自己被理解的存在”的话……</p>
+      </div>
+      <div class="dialogue-line k3">
+        <span class="speaker">K-3</span>
+        <p>……那您目前看起来不像是这样的“神”。</p>
+      </div>
+      <div class="dialogue-line k3">
+        <span class="speaker">K-3</span>
+        <p>请不要误会，这并不是说您微不足道——恰恰相反，我们建造的这座城市：理想城，与您和其他人类有着千丝万缕的联系。</p>
+      </div>
+      <div class="dialogue-line k3">
+        <span class="speaker">K-3</span>
+        <p>但……人类已经弃我们而去，或者说，他们选择了离开，这也是您如此特别的理由之一，您是我在这座城市，遇到的最后一位人类。</p>
+      </div>
+
+      <div class="dialogue-src">遗落即终末之歌 · 理想城花园</div>
+    </div>
+
+    <div class="section-divider">APPENDIX · 赛塔契娅</div>
+
+    <div class="char-card-big">
+      <div class="char-watermark">SETHA</div>
+      <div class="char-header">
+        <div class="char-name">赛塔契娅<span class="en">Setachia / 莱塔尼亚</span></div>
+        <div class="char-info">
+          <span>枢言</span>
+          <span>规则代言者</span>
+          <span>卡普里尼</span>
+          <span>矿石病感染者</span>
+        </div>
+      </div>
+      <div class="char-big-inner">
+        <div class="char-big-left">
+          <div class="char-desc">
+            <p>以桌游主持人DM为原型设计的女性角色。「神圣竞仪」的枢言，规则代言者——手持规则书，以戏剧化的表演风格主持这场如同圣杯战争的残酷术师竞技。</p>
+            <p>表面待人亲切，实则宅女；表面遵守礼仪，内心感到无聊。她通过充满仪式感的语言演绎游戏人生，而内心是对虚无的抵抗——她能看到"真实的赛塔契娅"，一个虚弱的、不优秀的术师、骗子、矿石病感染者。</p>
+            <p>动物原型为捻角山羊——生活于高山悬崖的稀有山羊，极度警觉、孤立，擅长隐藏自身，不轻易示弱。拉丁语名意为"螺旋之食者"。</p>
+          </div>
+          <div class="char-footer">
+            <span class="char-footer-tag">金发红瞳</span>
+            <span class="char-footer-tag">洛丽塔</span>
+            <span class="char-footer-tag">规则书</span>
+            <span class="char-footer-tag">戏剧化人格</span>
+            <span class="char-footer-tag">捻角山羊</span>
+          </div>
+        </div>
+        <div class="char-big-right">
+          <div class="char-illust">
+            <img src="setachia_illust.png" alt="赛塔契娅">
+          </div>
+        </div>
+      </div>
+      <div class="char-quote-band">规则书并未禁止这种行为，只是……大多数人不会轻易尝试。</div>
+    </div>
+
+    <div class="sig-lines">
+      <p class="sig-line">"骰面在质问您的仁慈：要斩首面前的「敌人」，还是将其赦免，任由胜利的天平重新倒向混沌？请您确认。"</p>
+      <p class="sig-line">"看呐！狼王在啃食自己的影子！此时此刻的我是被缚的我，无可救药的我，却必须默默忍受那痛苦的灵魂。"</p>
+    </div>
+
+    <div class="download-section">
+    <div class="download-section-title">相关文档<span class="sub">Attachments</span></div>
+    <div class="download-list">
+      <a href="./attachments/%E6%98%8E%E6%97%A5%E6%96%B9%E8%88%9F%E5%90%8C%E4%BA%BA%E8%A7%92%E8%89%B2%E8%AE%BE%E5%AE%9A.pdf" class="doc-link" download target="_blank" rel="noopener"><span class="doc-main"><span class="doc-icon">📄</span><span class="doc-title">明日方舟同人角色设定.pdf</span></span><span class="doc-meta">25289 KB</span><span class="doc-arrow">→</span></a>
+    </div>
+    </div>
+  </div>
+
+  <div class="work-section" id="gfl">
+    <div class="work-header">
+      <div class="work-title">风暴干线 <span class="en">Storm Line</span></div>
+      <div class="work-meta">少女前线同人作品 / 势力机制设定</div>
+      <div class="work-tags">
+        <span class="work-tag accent">势力设计</span>
+        <span class="work-tag">角色设计</span>
+        <span class="work-tag">场景叙事</span>
+      </div>
+    </div>
+    <div class="toc-box">
+      <div class="toc-title">[ DOCUMENT STRUCTURE ]</div>
+      <div class="toc-list">
+        <span>风暴干线势力设定</span><span>幽灵频段·量子干涉</span>
+        <span>斯黛拉角色全案</span><span>魅影女士·歌剧与狙击</span>
+        <span>场景叙事设计</span><span>封锁线→格罗维茨枢纽→阿卡夏</span>
+        <span>Mission-07 任务剧本</span><span>回声异常系统机制</span>
+      </div>
+    </div>
+    
+<div class="context">
+      <p>"团结不是一种情感，团结是一项命令。</p>
+      <p>"——罗克萨特主义示范区《居民登记法》第1条。</p>
+      <p>风暴干线是一支由被遗弃的战术人形与极地探险者组成的神秘势力。</p>
+      <p>原身为"极危天候测绘与风暴预警局"，他们在红区执行任务时遭遇坍塌风暴，被罗联正规军见死不救、遗弃在潮水般涌来的生骸之中。</p>
+      <p>濒死之际，无数附近死者的微弱电波在此汇集——形成了 ELID 的集体潜意识——被称为"幽灵意识"，注入战术人形的心智云图，使她们从坠落的梦境中醒来。</p>
+    </div>
+
+    <div class="section-divider">FACTION DETAIL</div>
+    <div class="faction-grid">
+      <div class="faction-card">
+        <div class="name">风暴干线 <span class="en">Storm Line</span></div>
+        <div class="desc">被遗弃的战术人形与极地探险者组成的独立势力。信奉"不祈求神的火种，铸造人类自己的王冠"，在文明边陲持续守望。</div>
+      </div>
+      <div class="faction-card">
+        <div class="name">幽灵意识 <span class="en">Ghost Frequency</span></div>
+        <div class="desc">ELID 感染者的集体潜意识形成的量子干涉现象。以歌剧女高音等形式出现在战术人形的心智云图中，提供预警与指引。</div>
+      </div>
+      <div class="faction-card">
+        <div class="name">罗联正规军 <span class="en">ROC Military</span></div>
+        <div class="desc">罗克萨特主义示范区的武装力量。在坍塌风暴中抛弃了风暴干线，成为她们从"工具"走向"自我"的转折镜像。</div>
+      </div>
+      <div class="faction-card">
+        <div class="name">荒原航标 <span class="en">Waymarks</span></div>
+        <div class="desc">风暴干线在通往红区的路线上布置的小型天线网络。用于回收牺牲者的量子信号，为后来者标出危险与归途。</div>
+      </div>
+    </div>
+
+    <div class="char-card-big">
+      <div class="char-watermark">STELLA</div>
+      <div class="char-header">
+        <div class="char-name">斯黛拉<span class="en">Stella / 代号"无信号"</span></div>
+        <div class="char-info">
+          <span>电台通信员</span>
+          <span>战术人形</span>
+          <span>适应性评级 C+</span>
+        </div>
+      </div>
+      <div class="char-big-inner">
+        <div class="char-big-left">
+          <div class="char-desc">
+            <p>坐在轮椅上，裹着不合身的反光雨衣，却总是第一个抵达狙击位置。</p>
+            <p>因能在辐射区充当"活体电台"而被编入探险队。在崩塌的气象站中双腿被压断，心智云图被幽灵意识——一位极富戏剧感的老派歌剧女高音——强行注入。</p>
+            <p>从此，一个看恐怖片都能吓哭的少女与"魅影女士"在脑海中相伴而生。只有播放《歌剧魅影》唱片时，幽灵才会安静下来。她每晚擦拭狙击枪，等待着重返战场。</p>
+          </div>
+          <div class="char-footer">
+            <span class="char-footer-tag">轮椅狙击手</span>
+            <span class="char-footer-tag">怕鬼</span>
+            <span class="char-footer-tag">活体电台</span>
+            <span class="char-footer-tag">歌剧爱好者</span>
+            <span class="char-footer-tag">持续性感知偏移</span>
+          </div>
+        </div>
+        <div class="char-big-right">
+          <div class="char-illust" style="max-height:560px">
+            <img src="stella_illust.png" alt="斯黛拉" style="max-height:560px">
+          </div>
+        </div>
+      </div>
+      <div class="char-quote-band">今晚的幽灵频段很安静……希望魅影女士愿意听完这一张唱片。</div>
+    </div>
+
+    <div class="char-grid">
+    </div>
+    <div class="char-grid">
+      <div class="char-card">
+        <div class="char-name">赛恩海娅 <span class="char-title">精英战斗队长</span></div>
+        <p class="char-desc">枪法好到令人不安。喜欢说一些很冷的笑话。负责风暴干线所有战斗行动的指挥，率领光学隐身能力极高的精英射手在幽灵频段的辅助下锁定目标。她的信条是：「我们不祈求神的火种，我们将铸造人类自己的王冠。」</p>
+        <div class="char-footer">
+          <span class="char-footer-tag">精英射手</span>
+          <span class="char-footer-tag">幽灵频段</span>
+          <span class="char-footer-tag">冷笑话</span>
+        </div>
+      </div>
+    </div>
+
+    
+<div class="excerpt">
+      <p>终端里不断传来罗联巡逻队四下搜捕的通讯和电子噪声。</p>
+      <p>蒙德正在重新校准接收频段。</p>
+      <p>一阵雪盲屏幕似的响声过后，有一段奇怪的录音，重复播放着失真的女声——是他和洁芙缇都无法忽略的。</p>
+      <p>两人都隐约知道是谁。</p>
+      <p>"早餐弄好了。</p>
+      <p>就在桌上。</p>
+      <p>"</p>
+      <p>远处的山谷被黑云遮蔽。</p>
+      <p>坍塌辐射值时高时低。</p>
+      <p>而里面并不是。</p>
+      <p>"<em>每一个都是我。</p>
+      <p></em>"</p>
+      <p>终端闪烁着红光："实验体 6-179，启动控制程序。</p>
+      <p>"</p>
+      <p>防爆门依次打开，封闭在冷冻舱里的失败实验体和自律兵器被释放出来。</p>
+      <p>洁芙缇沉默片刻，握紧了武器——也冲出了房间。</p>
+      <span class="src">少女前线同人 · 白色摇篮 场景叙事</span>
+    </div>
+
+    
+<div class="context">
+      <p>风暴干线的美学核心是"极地科考 × 电子朋克"——反光雨衣、声波伞、极地迷彩与地势等高线纹样。她们在通往红区的路线上布置小型天线"荒原航标"，引导牺牲者的量子信号回归。她们不寻求复仇，而是决意走在文明的边陲开拓。对于《少女前线》的叙事框架而言，风暴干线是一个关于"被遗弃者的守望"的独特发声。</p>
+    </div>
+  
+    
+    <div class="gallery-intro">极地科考与电子朋克的视觉融合，以及 NOESIS 机甲的废土意象——<span class="en">Style References</span></div>
+    <div class="gallery">
+      <div class="scene-img">
+        <img src="./portfolio_extract/散爆_风暴干线_images/散爆_风暴干线_image13.jpg" alt="风暴干线角色">
+        <div class="img-caption">美术风格参考 · 战术机能风：极地科考人员与电子朋克幽灵的融合</div>
+      </div>
+      <div class="scene-img">
+        <img src="./portfolio_extract/散爆_风暴干线_images/散爆_风暴干线_image5.jpg" alt="机甲场景">
+        <div class="img-caption">场景氛围参考 · 废墟中的巨物：NOESIS人形机甲与废土都市</div>
+      </div>
+    </div>
+
+    <div class="char-grid">
+      <div class="char-card">
+        <div class="char-name">尤莉娅 <span class="char-title">领航者 / 总指挥</span></div>
+        <p class="char-desc">缺乏存在感的透明系少女，日常裹着不合身的雨衣，通常是"无信号"的状态，但总能做出正确决定。负责制定各项计划，风暴干线的"脑"。</p>
+        <div class="char-footer">
+          <span class="char-footer-tag">领航者</span>
+          <span class="char-footer-tag">无信号</span>
+          <span class="char-footer-tag">风暴干线之脑</span>
+        </div>
+      </div>
+      <div class="char-card">
+        <div class="char-name">弗蕾尼 <span class="char-title">情报员</span></div>
+        <p class="char-desc">戴着耳机的潮流少女，喜欢吃Pocky饼干。每次离开营地都顺走一些东西，梦想是把世界各地的噪声做成流行音乐。负责对外情报收集，风暴干线的"眼"。</p>
+        <div class="char-footer">
+          <span class="char-footer-tag">情报员</span>
+          <span class="char-footer-tag">Pocky</span>
+          <span class="char-footer-tag">噪声音乐</span>
+        </div>
+      </div>
+      <div class="char-card">
+        <div class="char-name">赛恩海娅 <span class="char-title">军士长 / 战术教官</span></div>
+        <p class="char-desc">枪法好到令人不安，经常开一些很冷的玩笑。率领拥有极高光学隐身能力的精英射手，在幽灵频段辅助下锁定目标。信条：「我们不祈求神的火种，我们将铸造人类自己的王冠。」</p>
+        <div class="char-footer">
+          <span class="char-footer-tag">军士长</span>
+          <span class="char-footer-tag">光学隐身</span>
+          <span class="char-footer-tag">人类王冠</span>
+        </div>
+      </div>
+    </div>
+
+<div class="download-section">
+    <div class="download-section-title">相关文档<span class="sub">Attachments</span></div>
+    <div class="download-list">
+      <a href="./attachments/%E5%B0%91%E5%A5%B3%E5%89%8D%E7%BA%BF%E5%90%8C%E4%BA%BA%E5%8A%BF%E5%8A%9B%E8%AE%BE%E5%AE%9A.pdf" class="doc-link" download target="_blank" rel="noopener"><span class="doc-main"><span class="doc-icon">📄</span><span class="doc-title">少女前线同人势力设定.pdf</span></span><span class="doc-meta">3645 KB</span><span class="doc-arrow">→</span></a>
+    </div>
+    </div>
+  </div>
+
+
+</section>
+
+<div class="page-break"></div>
+
+<section class="cat-section" id="projects">
+  <div class="cat-header">
+    <div class="cat-watermark">III</div>
+    <div class="cat-label">CATEGORY III</div>
+    <div class="cat-title">项目内容</div>
+    <div class="cat-desc">都市怪谈 · 科幻战争 · 独立游戏</div>
+  </div>
+
+  <div class="work-section" id="derailed">
+    <div class="work-header">
+      <div class="work-title">Derailed 失控 <span class="en">Urban Horror Short Film</span></div>
+      <div class="work-meta">都市怪谈 / 独立视频项目</div>
+      <div class="work-tags">
+        <span class="work-tag accent">独立项目</span>
+        <span class="work-tag">都市怪谈</span>
+        <span class="work-tag">剧本</span>
+      </div>
+    </div>
+    
+<div class="context">
+      <p>一部都市怪谈风格的独立短片项目——包含完整的世界设定、角色档案、剧本分镜与视频成片。</p>
+      <p>故事设定在日常与异常的边界上：一所名为"放课后雾天活动兴趣社"的高中社团，实则是收容异常心理状态者的庇护所。</p>
+      <p>社团的五名成员各自携带着不同的心理标签——解离症、战争症、中二病、人格解离与心因性肢体障碍——在看似普通的校园生活中，与名为"L.S.P.C."的神秘组织、追猎而来的"猎人"，以及潜伏在城市阴影中的"怪物"展开交错对抗。</p>
+    </div>
+
+    <div class="char-card-big">
+      <div class="char-watermark">FUKE</div>
+      <div class="char-header">
+        <div class="char-name">芙柯<span class="en">Fuke / 解离症</span></div>
+        <div class="char-info">
+          <span>放课社成员</span>
+          <span>解离症</span>
+          <span>三无·电波·大胃王</span>
+        </div>
+      </div>
+      <div class="char-big-inner">
+        <div class="char-big-left">
+          <div class="char-desc">
+            <p>放课社的谜之带刀少女。患有解离症，部分记忆缺失，无法用“我”来称呼自己——仿佛灵魂被寄存到了别的什么地方。会以局外人视角看待自己经历的事，逐渐丢失对死去同伴的记忆。养了一只叫“星期五”的鼠兔。公认好脾气，除了吃饭和保护同伴之外什么都无所谓。喜欢在战斗时听音乐助兴，会半夜倒挂在外看风景——声称为了补充“活着感”需要定期做刺激的事情。</p>
+          </div>
+          <div class="char-footer">
+            <span class="char-footer-tag">解离症</span>
+            <span class="char-footer-tag">三无</span>
+            <span class="char-footer-tag">鼠兔星期五</span>
+            <span class="char-footer-tag">带刀少女</span>
+          </div>
+        </div>
+        <div class="char-big-right">
+          <div class="char-illust">
+            <img src="fuke_illust.png" alt="芙柯">
+          </div>
+        </div>
+      </div>
+      <div class="char-quote-band">如果“我”只能被记忆定义，那么每一场醒来，我都在重新成为自己。</div>
+    </div>
+
+    
+<div class="context">
+      <p>剧本采用多线错位的叙事结构——不同角色的日常片段与异常事件穿插拼接，在日常通勤、教室、天台、末班地铁等熟悉场景中逐渐注入不可名状的不安感。</p>
+      <p>心理异常的设定不是简单的角色标签，而是叙事的驱动力：每个角色的症状都直接服务于情节转折与氛围营造。</p>
+      <p>此外还有医生（"正常人"）、作家（中二病）、学生（人格解离）、园艺师（心因性肢体障碍）——社团六人各以其心理异常状态为世界的裂缝提供了不同的入口。</p>
+    </div>
+  
+    <div class="download-section">
+    <div class="download-section-title">相关文档<span class="sub">Attachments</span></div>
+    <div class="download-list">
+      <a href="./attachments/%E9%83%BD%E5%B8%82%E6%80%AA%E8%B0%88%EF%BD%9C%E3%80%8ADerailed%E3%80%8B%E4%BD%9C%E5%93%81%E4%BB%8B%E7%BB%8D.pdf" class="doc-link" download target="_blank" rel="noopener"><span class="doc-main"><span class="doc-icon">📄</span><span class="doc-title">都市怪谈｜《Derailed》作品介绍.pdf</span></span><span class="doc-meta">8129 KB</span><span class="doc-arrow">→</span></a>
+    </div>
+    </div>
+  </div>
+
+  <div class="work-section" id="eve">
+    <div class="work-header">
+      <div class="work-title">星战前夜：无烬星河 <span class="en">EVE Echoes</span></div>
+      <div class="work-meta">网易游戏 / 核心文案 / 2021-2024</div>
+      <div class="work-tags">
+        <span class="work-tag accent">核心文案</span>
+        <span class="work-tag">活动策划</span>
+        <span class="work-tag">赛季剧本</span>
+      </div>
+    </div>
+    <div class="toc-box">
+      <div class="toc-title">[ DOCUMENT STRUCTURE ]</div>
+      <div class="toc-list">
+        <span>赛季S1 烬海新手剧本</span><span>极夜·全服剧情规划</span>
+        <span>系统包装文案</span><span>赛季角色设定</span>
+        <span>泛星集市·逐星之律</span><span>泛星集市·潮音雨夜</span>
+      </div>
+    </div>
+    
+<div class="context">
+      <p>参与 EVE Echoes 国服核心文案工作（2021-2024），负责赛季剧情、活动策划、系统包装与文案剧本。</p>
+      <p>核心工作包括：<strong>赛季S1「烬海」新手引导剧本</strong>——为新玩家构建从教程到沙盒世界的叙事过渡；<strong>「极夜」全服剧情规划</strong>——跨赛季、多阵营的大型叙事框架设计；<strong>赛季角色设定</strong>——伴随赛季投放的原创 NPC 及其故事线。</p>
+    </div>
+    
+<div class="context">
+      <p>在商业化活动方面，主导设计了「泛星集市」系列活动概念与剧情。</p>
+      <p>「逐星之律」以虚拟偶像为核心——双生子虚拟歌姬星铱与星铂的成长与反抗故事，将二次元叙事与太空科幻舰船涂装融合；「潮音雨夜」（Neonrain）则以"音乐可视化 + 雨点"为视觉概念，从 Pinterest 上的电子音乐图案出发，转化为具有记忆点的科幻赛博涂装。</p>
+      <p>活动设计的核心理念：概念需要同时满足「故事背景 + 视觉元素」——前者提供代入感，后者提供风格化的新鲜感。</p>
+    </div>
+    
+    <div class="excerpt">
+      <p>虚拟偶像踏入命运的星夜，音符辉映，穿过光与尘埃的指引。虚拟与现实，自由与权力，手心温度，同频共振，双生共鸣。以此心声，逐星之律。</p>
+      <span class="src">泛星集市：逐星之律</span>
+    </div>
+
+    <div class="section-divider">VISUAL REFERENCE</div>
+    <div class="gallery-intro">EVE Echoes 宇宙场景视觉参考：空间站、轨道舰队与深空建筑——<span class="en">Universe Visuals</span></div>
+    <div class="gallery">
+      <div class="scene-img">
+        <img src="eve_ref_1.jpg" alt="深空建筑">
+        <div class="img-caption">宇宙场景参考 · 空间站与轨道舰队：深空中的工业巨构</div>
+      </div>
+      <div class="scene-img">
+        <img src="eve_ref_2.jpg" alt="环形跃迁门">
+        <div class="img-caption">宇宙场景参考 · 环形跃迁门与行星轨道舰队</div>
+      </div>
+    </div>
+
+    <div class="download-section">
+    <div class="download-section-title">相关文档<span class="sub">Attachments</span></div>
+    <div class="download-list">
+      <a href="./attachments/%E7%A7%91%E5%B9%BB%EF%BD%9C%E6%98%9F%E6%88%98%E5%89%8D%E5%A4%9C%20%E9%A1%B9%E7%9B%AE%202024%E5%B9%B4/%E8%B5%9B%E5%AD%A3s1%20-%20%E7%83%AC%E6%B5%B7%E6%96%B0%E6%89%8B%E5%89%A7%E6%9C%AC.pdf" class="doc-link" download target="_blank" rel="noopener"><span class="doc-main"><span class="doc-icon">📄</span><span class="doc-title">赛季s1 - 烬海新手剧本.pdf</span></span><span class="doc-meta">11306 KB</span><span class="doc-arrow">→</span></a>
+      <a href="./attachments/%E7%A7%91%E5%B9%BB%EF%BD%9C%E6%98%9F%E6%88%98%E5%89%8D%E5%A4%9C%20%E9%A1%B9%E7%9B%AE%202024%E5%B9%B4/%E8%B5%9B%E5%AD%A3s1%20-%20%E7%B3%BB%E7%BB%9F%E5%8C%85%E8%A3%85%E5%86%85%E5%AE%B9v0.3.pdf" class="doc-link" download target="_blank" rel="noopener"><span class="doc-main"><span class="doc-icon">📄</span><span class="doc-title">赛季s1 - 系统包装内容v0.3.pdf</span></span><span class="doc-meta">701 KB</span><span class="doc-arrow">→</span></a>
+      <a href="./attachments/%E7%A7%91%E5%B9%BB%EF%BD%9C%E6%98%9F%E6%88%98%E5%89%8D%E5%A4%9C%20%E9%A1%B9%E7%9B%AE%202024%E5%B9%B4/%E8%B5%9B%E5%AD%A3s1%20-%E3%80%8A%E6%9E%81%E5%A4%9C%E3%80%8B%E5%89%A7%E6%83%85%E8%A7%84%E5%88%92.pdf" class="doc-link" download target="_blank" rel="noopener"><span class="doc-main"><span class="doc-icon">📄</span><span class="doc-title">赛季s1 -《极夜》剧情规划.pdf</span></span><span class="doc-meta">723 KB</span><span class="doc-arrow">→</span></a>
+      <a href="./attachments/%E7%A7%91%E5%B9%BB%EF%BD%9C%E6%98%9F%E6%88%98%E5%89%8D%E5%A4%9C%20%E9%A1%B9%E7%9B%AE%202024%E5%B9%B4/%E8%B5%9B%E5%AD%A3%E8%A7%92%E8%89%B2%E8%AE%BE%E5%AE%9A.pdf" class="doc-link" download target="_blank" rel="noopener"><span class="doc-main"><span class="doc-icon">📄</span><span class="doc-title">赛季角色设定.pdf</span></span><span class="doc-meta">9440 KB</span><span class="doc-arrow">→</span></a>
+      <a href="./attachments/%E7%A7%91%E5%B9%BB%EF%BD%9C%E6%98%9F%E6%88%98%E5%89%8D%E5%A4%9C%20%E9%A1%B9%E7%9B%AE%202024%E5%B9%B4/EVE%20Echos%EF%BD%9C%E6%B4%BB%E5%8A%A8%E7%AD%96%E5%88%92/%E6%B4%BB%E5%8A%A8%E6%96%B9%E6%A1%88%EF%BD%9C%E6%B3%9B%E6%98%9F%E9%9B%86%E5%B8%82%20-%20%E9%93%B6%E7%8E%AF%E5%9C%86%E8%88%9E.pdf" class="doc-link" download target="_blank" rel="noopener"><span class="doc-main"><span class="doc-icon">📄</span><span class="doc-title">活动方案｜泛星集市 - 银环圆舞.pdf</span></span><span class="doc-meta">4867 KB</span><span class="doc-arrow">→</span></a>
+      <a href="./attachments/%E7%A7%91%E5%B9%BB%EF%BD%9C%E6%98%9F%E6%88%98%E5%89%8D%E5%A4%9C%20%E9%A1%B9%E7%9B%AE%202024%E5%B9%B4/EVE%20Echos%EF%BD%9C%E6%B4%BB%E5%8A%A8%E7%AD%96%E5%88%92/%E6%B4%BB%E5%8A%A8%E6%96%B9%E6%A1%88%EF%BD%9C%E6%B3%9B%E6%98%9F%E9%9B%86%E5%B8%82%EF%BC%9A%E9%80%90%E6%98%9F%E4%B9%8B%E5%BE%8B.pdf" class="doc-link" download target="_blank" rel="noopener"><span class="doc-main"><span class="doc-icon">📄</span><span class="doc-title">活动方案｜泛星集市：逐星之律.pdf</span></span><span class="doc-meta">5411 KB</span><span class="doc-arrow">→</span></a>
+    </div>
+    </div>
+  </div>
+
+  <div class="work-section" id="jingzhi">
+    <div class="work-header">
+      <div class="work-title">镜之诗 <span class="en">Mirror of Poetry</span></div>
+      <div class="work-meta">二次元 / 独立游戏 / 主创 / 2018</div>
+      <div class="work-tags">
+        <span class="work-tag accent">主创</span>
+        <span class="work-tag">世界观</span>
+        <span class="work-tag">角色设定</span>
+      </div>
+    </div>
+    <div class="toc-box">
+      <div class="toc-title">[ DOCUMENT STRUCTURE ]</div>
+      <div class="toc-list">
+        <span>故事设定总纲</span><span>世界观设定·乌托邦实验</span>
+        <span>莱德阿勒特学园全规则</span><span>角色档案 8+</span>
+        <span>学园意志·阿卡夏系统</span><span>原创词曲《光年》</span>
+      </div>
+    </div>
+    
+<div class="context">
+      <p>2018 年独立游戏企划，担任主创与世界观设计。</p>
+      <p>莱德阿勒特学园——一所拥有百年历史和十万学生自治生态的巨型学府，表面上风光旖旎，实质上是 Utopian Science Group 在第二次冷战背景下建造的"人类终极幸福"实验场。</p>
+      <p>学生在入学后被抹除记忆、进行主观条件设置，观察校园能否在固定秩序下永续运转。</p>
+      <p>名为"学园意志"的阿卡夏系统监控着所有人的行为与思想——而一场关于觉醒与反抗的故事，就在这所被遗忘的实验校园中展开。</p>
+    </div>
+
+    <div class="char-card-big">
+      <div class="char-watermark">YIDI</div>
+      <div class="char-header">
+        <div class="char-name">伊蒂<span class="en">Idi / 纪检部干事</span></div>
+        <div class="char-info">
+          <span>女·17岁</span>
+          <span>纪检部干事</span>
+          <span>三无·银发红瞳</span>
+        </div>
+      </div>
+      <div class="char-big-inner">
+        <div class="char-big-left">
+          <div class="char-desc">
+            <p>沉默寡言的纪检干事，对违纪学生很有手段。因完全丧失记忆而内心空虚——于是她竭力"扮演"各种形象。表面上行事充满逻辑，实则由着性子。</p>
+            <p>她从不相信关于青春的"童话故事"，却在与洛戛的接触中逐渐触碰到那些她不敢拥有的情感。是作品中最具戏剧性弧光的角色之一。</p>
+            <p>在纪律的执行背后，她其实比任何人都渴望被记住。每一次点名、每一次扣分，都是她模仿"正常"的尝试。她把纪检部的记录本翻到最新一页，却从不敢回顾前面写满的名字。</p>
+            <p>当洛戛第一次叫出她的名字时，她愣了很久。那不是扮演，而是被看见。她不确定自己应不应该笑，所以只是低头看着记录本，假装没有听见。</p>
+            <p>夜里她偶尔会站在宿舍窗前，望着被学园意志监控的花园。她想象那里下过一场雨，把所有的记忆冲刷干净，只留下月光和一把没有人签名的纪检记录本。</p>
+          </div>
+          <div class="char-footer">
+            <span class="char-footer-tag">三无</span>
+            <span class="char-footer-tag">银发红瞳</span>
+            <span class="char-footer-tag">纪检部</span>
+            <span class="char-footer-tag">记忆丧失</span>
+            <span class="char-footer-tag">戏剧弧光</span>
+          </div>
+        </div>
+        <div class="char-big-right">
+          <div class="char-illust" style="max-height:600px">
+            <img src="yidi_illust.png" alt="伊蒂" style="max-height:600px">
+          </div>
+        </div>
+      </div>
+      <div class="char-quote-band">她从不相信关于青春的"童话故事"，却在与洛戛的接触中，第一次触碰到那些她不敢拥有的情感。</div>
+    </div>
+    <div class="char-grid">
+      <div class="char-card featured">
+        <div class="char-name">白月 & 祈月 <span class="char-title">双子星·金发蓝瞳 / 强气姐姐与弱气妹妹</span></div>
+        <p class="char-desc">学园高中部最具知名度的双子。姐姐白月是兄弟会的核心战力，使用一把名为"人间断棱"的日本刀，在完美光环下隐藏着被洛戛逐一揭开的弱点——有强烈的傲娇属性。妹妹祈月每晚被噩梦困扰，性格温软安静，对人文学科涉猎广泛。双子之间微妙的差异与共鸣构成了学园中最令人牵挂的人际纽带。</p>
+        <div class="char-footer">
+          <span class="char-footer-tag">双子星</span>
+          <span class="char-footer-tag">日本刀</span>
+          <span class="char-footer-tag">傲娇姐姐</span>
+        </div>
+      </div>
+      <div class="char-card featured">
+        <div class="char-name">洛戛 <span class="char-title">男·18岁 / 高二转学生 / 叙事核心</span></div>
+        <p class="char-desc">故事的叙事核心。作为转学生进入莱德阿勒特，随着记忆的逐渐恢复，他开始察觉周围同学的异常麻木。在兄弟会、学生会与学园意志三方博弈中，洛戛成为了揭开乌托邦真相的关键人物。然而讽刺的是，他自己就一直在编织着"美好世界"的谎言——他是最了解这座学园虚伪本质的人，也是最擅长在其中伪装的人。</p>
+        <div class="char-footer">
+          <span class="char-footer-tag">高二转学生</span>
+          <span class="char-footer-tag">中二</span>
+          <span class="char-footer-tag">自称哲学家</span>
+          <span class="char-footer-tag">叙事核心</span>
+          <span class="char-footer-tag">伪装者</span>
+        </div>
+      </div>
+    </div>
+
+    
+<div class="excerpt">
+      <p>洛戛站在图书馆角落，贝妮娅——那个据说在恐怖袭击中罹难、后被父亲作为"学园意志"植入系统的少女——静静地看着他。</p>
+      <p>"你知道吗？</p>
+      <p>他们把我的意识复制了十七次。</p>
+      <p>每一次我都记得上一次被删除的感觉。</p>
+      <p>"</p>
+      <p>"那不是删除。</p>
+      <p>"洛戛说，"那是谋杀。</p>
+      <p>重复的谋杀。</p>
+      <p>"</p>
+      <p>书架之间的灯光微微闪烁。</p>
+      <p>学园意志的监控无处不在，但此刻图书馆最深处的角落，不在任何摄像头的覆盖范围内。</p>
+      <p>这是整座学园唯一不被注视的盲区——也是反叛开始的地方。</p>
+      <span class="src">镜之诗 · 图书馆场景</span>
+    </div>
+
+    
+<div class="excerpt">
+      <p>以下是原创填词主题曲《光年》的歌词摘录——以游戏叙事为蓝本，将学园、记忆与反抗的主题转化为音乐表达。歌词中"逆光而来的面容"呼应着被抹除记忆的角色们，"无穷的梦"则是对实验循环与觉醒主题的隐喻。</p>
+      <span class="src">镜之诗 · 原创词曲《光年》（节选）</span>
+    </div>
+
+    <div class="gallery-intro">视觉设计：UI 界面与交互概念<span class="en">Visual Design</span></div>
+    <div class="gallery">
+      <div class="scene-img">
+        <img src="./scene_images/jingzhi_ui_mockup.jpg" alt="UI界面概念">
+        <div class="img-caption">H3C 研发行政楼 · UI 界面设计方案（多主题变体）</div>
+      </div>
+    </div>
+
+    <div class="download-section">
+    <div class="download-section-title">相关文档<span class="sub">Attachments</span></div>
+    <div class="download-list">
+      <a href="./attachments/%E4%BA%8C%E6%AC%A1%E5%85%83%EF%BD%9C%E9%95%9C%E4%B9%8B%E8%AF%97%20%E7%8B%AC%E6%B8%B8%202018%E5%B9%B4/%E4%B8%BB%E9%A2%98%E6%9B%B2%EF%BD%9CStill%20Dreaming%20In%20Mirror%EF%BC%88%E4%B9%90%E8%B0%B1%EF%BC%89.pdf" class="doc-link" download target="_blank" rel="noopener"><span class="doc-main"><span class="doc-icon">📄</span><span class="doc-title">主题曲｜Still Dreaming In Mirror（乐谱）.pdf</span></span><span class="doc-meta">488 KB</span><span class="doc-arrow">→</span></a>
+    </div>
+    </div>
+  </div>
+</section>
+
+<div class="page-break"></div>
+
+<section class="cat-section" id="early">
+  <div class="cat-header">
+    <div class="cat-watermark">IV</div>
+    <div class="cat-label">CATEGORY IV</div>
+    <div class="cat-title">短篇小说</div>
+    <div class="cat-desc">科幻小说 · 文学随笔</div>
+  </div>
+
+  <div class="work-section" id="centaurus">
+    <div class="work-header">
+      <div class="work-title">半人马座领航员 <span class="en">Centaurus Navigator</span></div>
+      <div class="work-meta">科幻小说</div>
+      <div class="work-tags">
+        <span class="work-tag accent">时间旅行</span>
+        <span class="work-tag">光速列车</span>
+        <span class="work-tag">青春</span>
+      </div>
+    </div>
+    
+<div class="context">
+      <p>顺着地球赤道，从最左端，画出一条笔直的直线，连接到最右端。在这首尾相连的直线上，构筑一条列车轨道，将列车加速到每秒 30 万千米——能让车外时间静止的光速。列车绕地两亿三千万圈后，重新进站。这就是去往未来的时间旅行。男孩 T 和女孩 I 握着两张时间旅行的单程票，走向那辆通往十年后的列车。</p>
+    </div>
+
+    
+<div class="excerpt">
+      <p>I 被地面的某处凸起绊了一跤，T 连忙过来扶住她。</p>
+      <p>"你到底是有多久没出门，连路都不会走了。</p>
+      <p>""平地摔倒，并非谁都能练成的。</p>
+      <p>"她哈哈笑着，笑得全无心机。</p>
+      <p>他们沿着田边的公路继续走了百多步，皎白的月光穿过云层投射过来，将人世的漫长黑夜驱散，恰到好处地照亮了两个孩子回家的路。</p>
+      <p>"那，不如 T 来写小说，我给你画插画吧。</p>
+      <p>说不定真的可以刊发出去。</p>
+      <p>""还是算了吧，你是把绘画当作生命的，而像我这样的人……""生日礼物，求你了。</p>
+      <p>"I 眨着眼睛，睫毛柔和了路灯的光线。</p>
+      <span class="src">半人马座领航员 · 序章</span>
+    </div>
+
+    
+<div class="excerpt">
+      <p>他们进了车站。</p>
+      <p>大厅里出入着不同国家甚至不同时空的旅客——有去往五年后、十年后、甚至是直达五十年后的各种类别。</p>
+      <p>I 的脸上显示出疑惑不解的表情。</p>
+      <p>"我们总得吃东西吧。</p>
+      <p>"T 将一杯咖啡递到她手中。</p>
+      <p>"五分钟路程而已。</p>
+      <p>"</p>
+      <p>"五分钟？</p>
+      <p>我……我以为几乎过了整整三天。</p>
+      <p>"</p>
+      <p>T 想到了一个点子。</p>
+      <p>他把自己佩戴的手表——海蓝色的——扣紧在 I 的手腕上。</p>
+      <p>"分针每走一个刻度，就过了一分钟。</p>
+      <p>等这只表再过六十个刻度的时候，你就上进站的列车，我们在车上见。</p>
+      <p>"</p>
+      <p>然而这一次，竟是 T 自己产生了严重的时间紊乱。</p>
+      <p>他在柜台前排起的长队最后，一点一点地挪动着，感觉自己耗费了一个月。</p>
+      <p>等他逃回车上，I 并不在那里。</p>
+      <p>他跑下月台——惨白的光线，汹涌的人的河流，全然相似的一个个剪影——就在他与无数素不相识的灵魂擦肩而过时，哨声响起，那辆列车驶了出去。</p>
+      <p>I 坐在车窗附近，身边是空空的座位，她侧着头，双眼无神地扫视车外的人群，仿佛丢失了什么东西。</p>
+      <p>T 在候车大厅里发了疯地奔跑，声嘶力竭地喊叫。</p>
+      <p>从未有过这般努力，却也从未像此刻这样——弱小得甚至比不上一粒尘埃。</p>
+      <p>列车加速到了光速，他的声音根本无法传达，就连自己的影像也被抛在后面，变为不可见的光线。</p>
+      <p>I 看着那个男孩，连同那个紧紧拥抱过的身体和与自己对视过的眼睛，一并被时间远远送走，直到从此消失不见。</p>
+      <span class="src">半人马座领航员 · 车站</span>
+    </div>
+
+    <div class="pull-quote">宇宙太过浩瀚，作为领航员，他只能朝着一个方向，终其一生地前往。列车上载着各式各样的旅客，他们早晚都要下车——与半人马座领航员，一生一次地见面，却给他留下终其一生的遗憾。</div>
+  </div>
+
+  <div class="work-section" id="yesterday">
+    <div class="work-header">
+      <div class="work-title">静静的书桌 <span class="en">The Silent Desk</span></div>
+      <div class="work-meta">科幻小说 / 故事大纲</div>
+      <div class="work-tags">
+        <span class="work-tag accent">二维生物</span>
+        <span class="work-tag">日记</span>
+        <span class="work-tag">孤独</span>
+        <span class="work-tag">文明</span>
+      </div>
+    </div>
+
+    <div class="context">
+      <p>在一个人类与机器人共同上学的工业城市里，高中生周昙偶然买到一本日记。从写下名字的那一刻起，纸页上开始凭空浮现陌生的字迹——来自二维宇宙的中央控制机器「零号」。</p>
+      <p>零号的文明早已将自身上传为纯光能的存在，只留下它执行无穷无尽的计算。两个孤独的生命通过一本日记彼此分享：从三维世界的学业、恋爱与离别，到二维文明的起源、兴盛与坍缩。</p>
+      <p>直到某一天，零号算出「无穷问题」的最终答案，也预见了二维宇宙的终结。它向周昙道别，日记重新变回空白。而周昙用一生去追问：那究竟是一场梦，一段真正的跨维度对话，还是青春对孤独最温柔的回应？</p>
+    </div>
+
+    <div class="excerpt">
+      <p>周昙无意中打开日记，发现当中多了一句话：「你好，周昙。」</p>
+      <p>她正寻思这是谁的恶作剧，仔细看去每个字都是自己的笔迹。她在日记上写道：「你是谁呢？」</p>
+      <p>晚上，她坐在书桌前打开日记，纸面上呈现出新的文字：</p>
+      <p>「我是编号零。」</p>
+      <p>它来自二维世界宇宙中一个高度发达的文明，是那文明的人们所建造的一台中央控制机器。人们已经不在那里了，只留下它进行着近乎无穷无尽的计算工作，它感到十分孤独，因此通过解读周昙写下的符号讯息，和三维世界进行对话。</p>
+      <span class="src">静静的书桌 · 初次接触</span>
+    </div>
+
+    <div class="excerpt">
+      <p>某个寒冷的日子，周昙偶然再翻开日记，注意到日记仅剩下空白的几页了。她写下：「好久不见，零。」</p>
+      <p>「好久不见，周昙。」零号再次出现了，它显现的字体硕大，似乎非常兴奋。</p>
+      <p>「我算出无穷问题的答案了，原来一切都有结局。」</p>
+      <p>零号展示了一大段复杂精密的算式。可悲的是，这似乎预示着时间的有限性质——零号所在的二维宇宙，经过膨胀以来不断坍缩，似乎就要结束了。</p>
+      <p>「谢谢你，再见。」日记的最后一页，显现出了完全不同于周昙字迹的五个字。</p>
+      <span class="src">静静的书桌 · 告别</span>
+    </div>
+
+    <div class="pull-quote">周昙回到家里，坐在书桌前看着窗外的阳光。她觉得自己将要睡着了，身体轻飘飘的。用力撑开眼睛，那阳光不再刺眼，天上赫然显现出几个字，仿佛从更高的维度投影下来：「你好，周昙。」</div>
+
+    <div class="download-section">
+      <div class="download-section-title">相关文档<span class="sub">Attachments</span></div>
+      <div class="download-list">
+        <a href="./attachments/Jamie%20%E6%97%A9%E6%9C%9F%E5%B0%8F%E8%AF%B4%E4%BD%9C%E5%93%81/%E7%9F%AD%E7%AF%87%E5%B0%8F%E8%AF%B4%EF%BD%9C%E5%8D%8A%E4%BA%BA%E9%A9%AC%E5%BA%A7%E9%A2%86%E8%88%AA%E5%91%98.docx" class="doc-link" download target="_blank" rel="noopener"><span class="doc-main"><span class="doc-icon">&#128196;</span><span class="doc-title">短篇小说｜半人马座领航员.docx</span></span><span class="doc-meta">520 KB</span><span class="doc-arrow">&#8595;</span></a>
+        <a href="./attachments/Jamie%20%E6%97%A9%E6%9C%9F%E5%B0%8F%E8%AF%B4%E4%BD%9C%E5%93%81/%E7%9F%AD%E7%AF%87%E5%B0%8F%E8%AF%B4%EF%BD%9C%E6%81%90%E6%85%8C.docx" class="doc-link" download target="_blank" rel="noopener"><span class="doc-main"><span class="doc-icon">&#128196;</span><span class="doc-title">短篇小说｜恐慌.docx</span></span><span class="doc-meta">139 KB</span><span class="doc-arrow">&#8595;</span></a>
+        <a href="./attachments/Jamie%20%E6%97%A9%E6%9C%9F%E5%B0%8F%E8%AF%B4%E4%BD%9C%E5%93%81/%E6%95%85%E4%BA%8B%E5%A4%A7%E7%BA%B2%EF%BD%9C%E9%9D%99%E9%9D%99%E7%9A%84%E4%B9%A6%E6%A1%8C.docx" class="doc-link" download target="_blank" rel="noopener"><span class="doc-main"><span class="doc-icon">&#128196;</span><span class="doc-title">故事大纲｜静静的书桌.docx</span></span><span class="doc-meta">22 KB</span><span class="doc-arrow">&#8595;</span></a>
+        <a href="./attachments/Jamie%20%E6%97%A9%E6%9C%9F%E5%B0%8F%E8%AF%B4%E4%BD%9C%E5%93%81/%E6%95%85%E4%BA%8B%E5%A4%A7%E7%BA%B2%EF%BD%9C%E6%9C%80%E5%90%8E%E4%B8%80%E6%A0%AA%E5%90%91%E6%97%A5%E8%91%B5.docx" class="doc-link" download target="_blank" rel="noopener"><span class="doc-main"><span class="doc-icon">&#128196;</span><span class="doc-title">故事大纲｜最后一株向日葵.docx</span></span><span class="doc-meta">18 KB</span><span class="doc-arrow">&#8595;</span></a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="page-break"></div>
+
+<section class="cat-section" id="method">
+  <div class="cat-header">
+    <div class="cat-watermark">V</div>
+    <div class="cat-label">CATEGORY V</div>
+    <div class="cat-title">创作方法论</div>
+    <div class="cat-desc">剧情设计 · 活动策划</div>
+  </div>
+
+  <div class="work-section" id="story-method">
+    <div class="work-header">
+      <div class="work-title">如何设计一个剧情故事</div>
+      <div class="work-meta">网易互娱 KM / 2024</div>
+      <div class="work-tags">
+        <span class="work-tag accent">故事设计</span>
+        <span class="work-tag">角色塑造</span>
+        <span class="work-tag">情节结构</span>
+      </div>
+    </div>
+    <div class="method-step">
+      <div class="num">01</div>
+      <div class="body">
+        <div class="title">构思一个主题</div>
+        <div class="desc">故事更强调"主题"，活动更侧重"概念"。二次元题材离不开成长、挚爱、反抗世界这三个经典主题，它们构成了受众向上生长的必经之路。</div>
+      </div>
+    </div>
+    <div class="method-step">
+      <div class="num">02</div>
+      <div class="body">
+        <div class="title">展开势力设定</div>
+        <div class="desc">让主角拥有取胜的客观条件，加强博弈。围绕核心冲突引入盟友、公众、政治力量与内部叛徒，让故事在多方角力中自然发展。</div>
+      </div>
+    </div>
+    <div class="method-step">
+      <div class="num">03</div>
+      <div class="body">
+        <div class="title">锚定高潮</div>
+        <div class="desc">高潮是船锚，锚定整个故事脉络。以"逐星之律"为例：演唱会上星铱发表独白，揭示真实身份，而后消失——Mic Drop 成为最具象征意义的谢幕。</div>
+      </div>
+    </div>
+
+    <div class="download-section">
+    <div class="download-section-title">相关文档<span class="sub">Attachments</span></div>
+    <div class="download-list">
+      <a href="./attachments/%E6%96%87%E6%A1%88%20-%20%E5%88%9B%E4%BD%9C%E6%96%B9%E6%B3%95%E8%AE%BA%20%E4%B8%AA%E4%BA%BA%E6%80%BB%E7%BB%93/%E5%B7%A5%E4%BD%9C%E6%80%BB%E7%BB%93%EF%BD%9C%E5%A6%82%E4%BD%95%E8%AE%BE%E8%AE%A1%E4%B8%80%E4%B8%AA%E5%89%A7%E6%83%85%E6%95%85%E4%BA%8B.docx" class="doc-link" download target="_blank" rel="noopener"><span class="doc-main"><span class="doc-icon">&#128196;</span><span class="doc-title">工作总结｜如何设计一个剧情故事.docx</span><span class="doc-tag">KM 分享</span></span><span class="doc-meta">20498 KB</span><span class="doc-arrow">&#8595;</span></a>
+    </div>
+    </div>
+  </div>
+
+  <div class="work-section" id="event-method">
+    <div class="work-header">
+      <div class="work-title">如何搞定一个活动概念</div>
+      <div class="work-meta">网易互娱 KM / 2024</div>
+      <div class="work-tags">
+        <span class="work-tag accent">活动概念</span>
+        <span class="work-tag">商业化</span>
+        <span class="work-tag">视觉化</span>
+      </div>
+    </div>
+    <div class="method-step">
+      <div class="num">01</div>
+      <div class="body">
+        <div class="title">科幻 + 年轻化 + 大众文化</div>
+        <div class="desc">好的活动概念需要同时具备科幻元素、年轻化特色与大众文化基础，并确保题材拥有视觉化潜力，能够直接转化为舰船外观与登录页。</div>
+      </div>
+    </div>
+    <div class="method-step">
+      <div class="num">02</div>
+      <div class="body">
+        <div class="title">重复是最简单的记忆方式</div>
+        <div class="desc">主题、纳米核心、剧情、音乐使用同一个名称，让中心概念反复出现。在没有太多叙事资源时，重复是最高效的传播手段。</div>
+      </div>
+    </div>
+    <div class="method-step">
+      <div class="num">03</div>
+      <div class="body">
+        <div class="title">正面进攻，不避争议</div>
+        <div class="desc">"逐星之律"将二次元角色直接搬上游戏登录页，首次覆盖旗舰与多款舰船。正面提供新鲜感，而不是试图避免争议，往往能收获更大的声量。</div>
+      </div>
+    </div>
+
+    <div class="download-section">
+    <div class="download-section-title">相关文档<span class="sub">Attachments</span></div>
+    <div class="download-list">
+      <a href="./attachments/%E6%96%87%E6%A1%88%20-%20%E5%88%9B%E4%BD%9C%E6%96%B9%E6%B3%95%E8%AE%BA%20%E4%B8%AA%E4%BA%BA%E6%80%BB%E7%BB%93/%E5%B7%A5%E4%BD%9C%E6%80%BB%E7%BB%93%EF%BD%9C%E5%A6%82%E4%BD%95%E6%90%9E%E5%AE%9A%E4%B8%80%E4%B8%AA%E6%B4%BB%E5%8A%A8%E6%A6%82%E5%BF%B5.docx" class="doc-link" download target="_blank" rel="noopener"><span class="doc-main"><span class="doc-icon">&#128196;</span><span class="doc-title">工作总结｜如何搞定一个活动概念.docx</span><span class="doc-tag">KM 分享</span></span><span class="doc-meta">2723 KB</span><span class="doc-arrow">&#8595;</span></a>
+    </div>
+    </div>
+  </div>
+</section>
+
+<div class="page-break"></div>
+
+<section class="closing" id="closing">
+  <div class="closing-inner">
+    <div class="closing-epigraph">"也许它是想被注意到。"</div>
+
+    <div class="closing-body">
+      我不确定哪些世界真正属于我。<br>
+      但我确定，每一个字都写给了愿意看见的人。
+    </div>
+
+    <div class="closing-attribution">— 创作方法论结语</div>
+
+    <div class="closing-meta">
+      <div>左展玮 <span class="sep">/</span> 游戏文案策划</div>
+      <div>作品集档案 <span class="sep">/</span> 2016 - 2026</div>
+    </div>
+
+    <a class="closing-back" href="#index">返回目录</a>
+  </div>
+</section>
+
+<div class="bottom-fade" aria-hidden="true"></div>
+
+<script>
+  const progress=document.getElementById('progress');
+  window.addEventListener('scroll',()=>{
+    const s=document.documentElement.scrollTop;
+    const h=document.documentElement.scrollHeight-document.documentElement.clientHeight;
+    progress.style.width=(s/h*100)+'%';
+  });
+
+  /* Hero quote line-by-line reveal via IntersectionObserver */
+  const heroEpigraph=document.querySelector('.hero-epigraph');
+  if(heroEpigraph){
+    const heroLines=heroEpigraph.querySelectorAll('.hero-quote p');
+    const heroSrc=heroEpigraph.querySelector('.hero-quote .src');
+    const heroScroll=heroEpigraph.querySelector('.hero-scroll');
+    let heroRevealed=false;
+    const heroObserver=new IntersectionObserver((entries)=>{
+      entries.forEach(e=>{
+        if(e.isIntersecting){
+          if(!heroRevealed){
+            heroRevealed=true;
+            heroLines.forEach((p,i)=>{
+              setTimeout(()=>{p.classList.add('visible');}, i*600+200);
+            });
+            if(heroSrc){
+              setTimeout(()=>{heroSrc.classList.add('visible');}, heroLines.length*600+400);
+            }
+            if(heroScroll){
+              setTimeout(()=>{heroScroll.style.opacity='1'; heroScroll.style.transition='opacity 1s ease-out';}, heroLines.length*600+800);
+            }
+          }
+        }else{
+          heroRevealed=false;
+          heroLines.forEach(p=>{p.classList.remove('visible');});
+          if(heroSrc){heroSrc.classList.remove('visible');}
+          if(heroScroll){heroScroll.style.opacity='0'; heroScroll.style.transition='none';}
+        }
+      });
+    },{threshold:.2});
+    heroObserver.observe(heroEpigraph);
+  }
+
+  const observer=new IntersectionObserver((entries)=>{
+    entries.forEach(e=>{
+      if(e.isIntersecting){
+        e.target.classList.add('visible');
+      } else {
+        e.target.classList.remove('visible');
+      }
+    });
+  },{threshold:.1});
+  document.querySelectorAll('.toc-box, .context, .excerpt, .dialogue, .char-grid, .doc-card, .method-step, .pull-quote, .download-section, .faction-grid, .closing, .index-cat, .opening-bridge').forEach(el=>{
+    el.classList.add('fade-in');
+    observer.observe(el);
+  });
+  document.querySelectorAll('.index-cat').forEach((el,i)=>{
+    el.style.transitionDelay=(i*0.15)+'s';
+  });
+  const openingObserver=new IntersectionObserver((entries)=>{
+    entries.forEach(e=>{
+      if(e.isIntersecting){
+        e.target.classList.add('visible');
+      } else {
+        e.target.classList.remove('visible');
+      }
+    });
+  },{threshold:.15});
+  openingObserver.observe(document.querySelector('.opening'));
+
+  /* Side TOC */
+  const sideToc=document.getElementById('sideToc');
+  const tocToggle=document.getElementById('tocToggle');
+  const tocOverlay=document.getElementById('tocOverlay');
+  const openingEl=document.querySelector('.opening');
+  const indexEl=document.getElementById('index');
+
+  function updateSidebarVisibility(){
+    if(window.innerWidth>1440){
+      const trigger=indexEl?indexEl.offsetTop+indexEl.offsetHeight-120:800;
+      if(window.scrollY>trigger){
+        sideToc.classList.add('visible');
+      }else{
+        sideToc.classList.remove('visible');
+      }
+    }
+  }
+  window.addEventListener('scroll',updateSidebarVisibility);
+
+  /* Right side chapter context panel */
+  const rightPanel=document.getElementById('rightPanel');
+  const rightPanelNum=document.getElementById('rightPanelNum');
+  const rightPanelTitle=document.getElementById('rightPanelTitle');
+  const catMap={
+    original:{num:'01',title:'原创设计'},
+    fanwork:{num:'02',title:'同人创作'},
+    projects:{num:'03',title:'项目内容'},
+    early:{num:'04',title:'短篇小说'},
+    method:{num:'05',title:'创作方法论'}
+  };
+  function updateRightPanel(){
+    if(window.innerWidth<=1200) return;
+    const openingBottom=openingEl?openingEl.offsetTop+openingEl.offsetHeight:600;
+    if(window.scrollY>openingBottom){
+      rightPanel.classList.add('visible');
+    }else{
+      rightPanel.classList.remove('visible');
+    }
+  }
+  window.addEventListener('scroll',updateRightPanel);
+  window.addEventListener('resize',updateRightPanel);
+
+  const catSections=document.querySelectorAll('.cat-section');
+  function updateRightPanelActive(){
+    if(window.innerWidth<=1200) return;
+    const mark=window.scrollY+window.innerHeight*0.4;
+    let activeId=null;
+    catSections.forEach(s=>{
+      if(s.offsetTop<=mark) activeId=s.id;
+    });
+    if(activeId && catMap[activeId]){
+      rightPanelNum.textContent=catMap[activeId].num;
+      rightPanelTitle.textContent=catMap[activeId].title;
+    }
+  }
+  window.addEventListener('scroll',updateRightPanelActive);
+  window.addEventListener('resize',updateRightPanelActive);
+
+  window.addEventListener('resize',()=>{
+    updateSidebarVisibility();
+    if(window.innerWidth>1440){
+      tocOverlay.classList.remove('show');
+    }
+  });
+  updateSidebarVisibility();
+  updateRightPanel();
+  updateRightPanelActive();
+
+  tocToggle.addEventListener('click',()=>{
+    sideToc.classList.toggle('open');
+    tocOverlay.classList.toggle('show');
+  });
+  tocOverlay.addEventListener('click',()=>{
+    sideToc.classList.remove('open');
+    tocOverlay.classList.remove('show');
+  });
+  sideToc.querySelectorAll('a').forEach(link=>{
+    link.addEventListener('click',()=>{
+      sideToc.classList.remove('open');
+      tocOverlay.classList.remove('show');
+    });
+  });
+
+  const tocLinks=sideToc.querySelectorAll('a[href^="#"]');
+  const trackSections=document.querySelectorAll('#index, .work-section, .cat-section');
+  const tocObserver=new IntersectionObserver((entries)=>{
+    entries.forEach(e=>{
+      if(e.isIntersecting){
+        const id=e.target.id;
+        tocLinks.forEach(link=>{
+          link.classList.toggle('active',link.getAttribute('href')==='#'+id);
+        });
+      }
+    });
+  },{rootMargin:'-20% 0px -60% 0px'});
+  trackSections.forEach(s=>tocObserver.observe(s));
+
+  /* Smooth scroll for all anchor links */
+  document.querySelectorAll('a[href^="#"]').forEach(a=>{
+    a.addEventListener('click',function(e){
+      e.preventDefault();
+      const target=document.querySelector(this.getAttribute('href'));
+      if(target){
+        target.scrollIntoView({behavior:'smooth', block:'start'});
+      }
+    });
+  });
+
+  /* Music */
+  const bgm=document.createElement('audio');
+  bgm.src='silver_waltz.flac';
+  bgm.loop=true;
+  bgm.volume=0.4;
+  bgm.preload='auto';
+  document.body.appendChild(bgm);
+
+  const musicBtn=document.createElement('button');
+  musicBtn.className='music-toggle playing';
+  musicBtn.innerHTML='<span class="music-icon">\u266A</span><span class="music-label">音乐</span><span class="music-name">银环圆舞 / Silver Waltz</span>';
+  musicBtn.setAttribute('aria-label','暂停音乐');
+  document.body.appendChild(musicBtn);
+
+  function setPlaying(state){
+    if(state){
+      musicBtn.classList.add('playing');
+      musicBtn.setAttribute('aria-label','暂停音乐');
+    }else{
+      musicBtn.classList.remove('playing');
+      musicBtn.setAttribute('aria-label','播放音乐');
+    }
+  }
+
+  bgm.play().then(()=>setPlaying(true)).catch(()=>setPlaying(false));
+
+  musicBtn.addEventListener('click',()=>{
+    if(bgm.paused){
+      bgm.play().catch(()=>{});
+      setPlaying(true);
+    }else{
+      bgm.pause();
+      setPlaying(false);
+    }
+  });
+</script>
+
+</body></html>
