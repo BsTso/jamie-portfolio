@@ -1,0 +1,1 @@
+{"framework": "Other", "outputDirectory": "dist", "buildCommand": "npm run build", "installCommand": "npm install"}

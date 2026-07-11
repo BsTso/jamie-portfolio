@@ -347,7 +347,8 @@ h2.section-title .en{font-family:var(--en); font-size:14px; color:var(--t4); fon
 
 /* Scrollbar */
 html{scrollbar-width:thin; scrollbar-color:var(--acc2) transparent}
-.bottom-fade{position:fixed; left:0; right:0; bottom:0; height:240px; backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px); mask-image:linear-gradient(to top, black 5%, transparent 60%); -webkit-mask-image:linear-gradient(to top, black 5%, transparent 60%); background:linear-gradient(to top, rgba(10,10,13,.35) 0%, transparent 45%); z-index:890; pointer-events:none}
+.bottom-fade{position:fixed; left:0; right:0; bottom:0; height:240px; backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px); mask-image:linear-gradient(to top, black 5%, transparent 60%); -webkit-mask-image:linear-gradient(to top, black 5%, transparent 60%); background:linear-gradient(to top, rgba(10,10,13,.35) 0%, transparent 45%); z-index:890; pointer-events:none; display:flex; align-items:flex-end; justify-content:center; padding-bottom:20px}
+.bottom-fade-text{font-family:var(--en); font-size:10px; letter-spacing:.2em; color:var(--t4); opacity:.35; text-transform:uppercase; white-space:nowrap}
 
 ::-webkit-scrollbar{width:4px}
 ::-webkit-scrollbar-track{background:transparent}
@@ -1967,7 +1968,7 @@ html{scrollbar-width:thin; scrollbar-color:var(--acc2) transparent}
   </div>
 </section>
 
-<div class="bottom-fade" aria-hidden="true"></div>
+<div class="bottom-fade" aria-hidden="true"><span class="bottom-fade-text">Jamie Tso &middot; Narrative Design Portfolio &middot; 2016 &ndash; 2026</span></div>
 
 <script>
   const progress=document.getElementById('progress');
@@ -2014,9 +2015,8 @@ html{scrollbar-width:thin; scrollbar-color:var(--acc2) transparent}
     entries.forEach(e=>{
       if(e.isIntersecting){
         e.target.classList.add('visible');
-      } else {
-        e.target.classList.remove('visible');
       }
+      // 单向显示：滚动离开不再隐藏，避免移动端抖动/内容丢失
     });
   },{threshold:.1});
   document.querySelectorAll('.toc-box, .context, .excerpt, .dialogue, .char-grid, .doc-card, .method-step, .pull-quote, .download-section, .faction-grid, .closing, .index-cat, .opening-bridge').forEach(el=>{
@@ -2030,12 +2030,16 @@ html{scrollbar-width:thin; scrollbar-color:var(--acc2) transparent}
     entries.forEach(e=>{
       if(e.isIntersecting){
         e.target.classList.add('visible');
-      } else {
-        e.target.classList.remove('visible');
       }
     });
   },{threshold:.15});
   openingObserver.observe(document.querySelector('.opening'));
+
+  /* 安全网：移动端 IntersectionObserver 可能不触发，2.5s 后强制显示所有渐显内容，避免整页空白 */
+  setTimeout(()=>{
+    document.querySelectorAll('.fade-in:not(.visible)').forEach(el=>el.classList.add('visible'));
+    document.querySelectorAll('.opening:not(.visible), .hero-quote p:not(.visible), .hero-scroll:not(.visible), .hero-src:not(.visible)').forEach(el=>el.classList.add('visible'));
+  },2500);
 
   /* Side TOC */
   const sideToc=document.getElementById('sideToc');
@@ -2147,38 +2151,101 @@ html{scrollbar-width:thin; scrollbar-color:var(--acc2) transparent}
 
   /* Music */
   const bgm=document.createElement('audio');
-  bgm.src='silver_waltz.flac';
+  bgm.src='silver_waltz.mp3';
   bgm.loop=true;
-  bgm.volume=0.4;
   bgm.preload='auto';
+  const TARGET_VOL=0.168;
+  // 静音 + autoplay 让浏览器在加载时即以「静音」发起播放（对静音媒体始终放行）
+  bgm.muted=true;
+  bgm.autoplay=true;
+  bgm.volume=0;
   document.body.appendChild(bgm);
 
   const musicBtn=document.createElement('button');
-  musicBtn.className='music-toggle playing';
+  musicBtn.className='music-toggle';
   musicBtn.innerHTML='<span class="music-icon">\u266A</span><span class="music-label">音乐</span><span class="music-name">银环圆舞 / Silver Waltz</span>';
-  musicBtn.setAttribute('aria-label','暂停音乐');
+  musicBtn.setAttribute('aria-label','播放音乐');
   document.body.appendChild(musicBtn);
 
+  let isPlaying=false;
+  let fadeRAF=null;
+  let unlocked=false;   // 是否已有过用户手势解锁
+
   function setPlaying(state){
-    if(state){
-      musicBtn.classList.add('playing');
-      musicBtn.setAttribute('aria-label','暂停音乐');
-    }else{
-      musicBtn.classList.remove('playing');
-      musicBtn.setAttribute('aria-label','播放音乐');
+    isPlaying=state;
+    musicBtn.classList.toggle('playing',state);
+    musicBtn.setAttribute('aria-label',state?'暂停音乐':'播放音乐');
+  }
+
+  function cancelFade(){
+    if(fadeRAF){cancelAnimationFrame(fadeRAF);fadeRAF=null;}
+  }
+
+  function fadeTo(target,duration,onDone){
+    cancelFade();
+    const start=bgm.volume;
+    const t0=performance.now();
+    function step(now){
+      const k=Math.min(1,(now-t0)/duration);
+      bgm.volume=start+(target-start)*k;
+      if(k<1){fadeRAF=requestAnimationFrame(step);}
+      else{fadeRAF=null;if(onDone)onDone();}
+    }
+    fadeRAF=requestAnimationFrame(step);
+  }
+
+  // 确保音频处于播放状态（被暂停则发起播放，忽略可能的拦截报错）
+  function ensurePlaying(){
+    if(bgm.paused){
+      const pr=bgm.play();
+      if(pr&&pr.then) pr.catch(()=>{});
     }
   }
 
-  bgm.play().then(()=>setPlaying(true)).catch(()=>setPlaying(false));
+  // 取消静音并淡入：必须在「用户手势上下文」或已播放状态下才对移动端有效
+  function revealAudio(){
+    bgm.muted=false;
+    ensurePlaying();
+    setPlaying(true);
+    fadeTo(TARGET_VOL,1200);
+  }
 
-  musicBtn.addEventListener('click',()=>{
-    if(bgm.paused){
-      bgm.play().catch(()=>{});
-      setPlaying(true);
-    }else{
-      bgm.pause();
-      setPlaying(false);
-    }
+  function startPlayback(){
+    bgm.muted=true;
+    bgm.volume=0;
+    ensurePlaying();   // 先以静音发起播放（移动端/桌面端均放行）
+  }
+
+  function pauseWithFade(){
+    fadeTo(0,1600,()=>{ bgm.pause(); setPlaying(false); });   // 暂停淡出 1.6s
+  }
+
+  // 兜底：首次任意用户手势（触屏/点击/按键）立即取消静音播放，确保一定能响
+  function gestureUnlock(e){
+    if(unlocked) return;
+    if(e&&e.target&&musicBtn.contains(e.target)) return; // 按钮交给 click 处理
+    unlocked=true;
+    revealAudio();   // 处于手势上下文，浏览器允许取消静音
+    window.removeEventListener('pointerdown',gestureUnlock);
+    window.removeEventListener('touchstart',gestureUnlock);
+    window.removeEventListener('keydown',gestureUnlock);
+  }
+  window.addEventListener('pointerdown',gestureUnlock);
+  window.addEventListener('touchstart',gestureUnlock,{passive:true});
+  window.addEventListener('keydown',gestureUnlock);
+
+  // 5 秒尝试自动播放：桌面端静音自动播放成功→取消静音淡入；移动端多被拦，由手势兜底
+  setPlaying(false);
+  setTimeout(()=>{
+    if(unlocked) return;
+    if(bgm.paused){ startPlayback(); } else { revealAudio(); }
+  },5000);
+
+  // 按钮：单点切换播放/暂停
+  musicBtn.addEventListener('click',(e)=>{
+    e.stopPropagation();
+    if(isPlaying){ pauseWithFade(); }
+    else { unlocked=true; revealAudio(); }
   });
 </script>
 
